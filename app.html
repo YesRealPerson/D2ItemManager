@@ -62,11 +62,12 @@
                         var type = vault.data[i].type;
                         var icon = vault.data[i].icon;
                         var location = vault.data[i].location =="vault";
+                        var currentLocation = vault.data[i].location;
                         let add = document.createElement('img');
                         add.setAttribute("src",icon);
 
                         let button = document.createElement('button');
-                        button.setAttribute("onclick",`transferItem( "${vault.data[i].itemHash}","${1}","${location}","${vault.data[i].itemInstanceId}","${3}" )`);
+                        button.setAttribute("onclick",`transferItem( "${vault.data[i].itemHash}","${1}","${!location}","${vault.data[i].itemInstanceId}","${3}","${currentLocation}" )`);
                         button.appendChild(add);
 
                         let div = document.createElement('div');
@@ -122,10 +123,14 @@
                 });
             });
             }
-            function transferItem(hash, stack, vault, instance, membership){
+            function transferItem(hash, stack, vault, instance, membership, currentLocation){
                 if(currentChar=="none"){
                     alert("Select a character!");
                 }else{
+                    var charToMove = currentChar;
+                    if(vault){
+                        charToMove = currentLocation;
+                    }
                     fetch("/moveitem?hash="+hash+"&stack="+stack+"&vault="+vault+"&instance="+instance+"&currentChar="+currentChar+"&membership="+membership+"&id="+value)
                     .then((response) => {
                         if(response.ok){

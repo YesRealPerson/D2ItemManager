@@ -37,7 +37,7 @@ let manifestPromise = function getManifest(){
                         var manifest = JSON.stringify(response.data);
                         //write manifest
                         fs.writeFileSync(filename, manifest);
-                        //
+                        //Say success
                         resolve(filename);
                     })
             }
@@ -53,26 +53,28 @@ let manifestPromise = function getManifest(){
 
 manifestPromise().then((res) => {
   var itemManifest = JSON.parse(fs.readFileSync('./'+res));
+  console.log("Item manifest downloaded!");
+  console.log("Version: "+res);
   const app = express();
-const server = https.createServer({ key: key, cert: cert }, app);
+  const server = https.createServer({ key: key, cert: cert }, app);
 
-//transfer, POST
-app.get("/moveitem", (req, res) => {
-  const data = [req.query.hash, req.query.stack, req.query.vault, req.query.instance, req.query.currentChar, req.query.membership, req.query.id];
-  data.forEach((item) => {
-    if (typeof item == typeof undefined) {
-      res.status(400).send("invalid input");
-    }
-  });
-  var what = ({
-    'itemReferenceHash': data[0],
-    'stackSize': data[1],
-    'transferToVault': data[2],
-    'itemId': data[3],
-    'characterId': data[4],
-    'membershipType': data[5],
-  });
-  var token = JSON.parse(fs.readFileSync(req.query.id + ".oauth.json"));
+  //transfer, POST
+  app.get("/moveitem", (req, res) => {
+    const data = [req.query.hash, req.query.stack, req.query.vault, req.query.instance, req.query.currentChar, req.query.membership, req.query.id];
+    data.forEach((item) => {
+      if (typeof item == typeof undefined) {
+        res.status(400).send("invalid input");
+      }
+    });
+    var what = ({
+      'itemReferenceHash': data[0],
+      'stackSize': data[1],
+      'transferToVault': data[2],
+      'itemId': data[3],
+      'characterId': data[4],
+      'membershipType': data[5],
+    });
+    var token = JSON.parse(fs.readFileSync(req.query.id + ".oauth.json"));
   if (token.timeof + token.expires_in < new Date() / 1000) {
     console.log("Expired token");
     //call refresh token pass refresh token in
@@ -329,7 +331,6 @@ function getVault(id) {
                 if (bucketTypes.includes(bucketHash)) {
                   var itemInstanceId = data.items[i].itemInstanceId;
                   var itemHash = data.items[i].itemHash;
-                  var location = data.items[i].location;
                   var obj = JSON.parse(getIcon(itemHash));
                   var type = obj.inventory.bucketTypeHash;
                   switch (type) {
@@ -360,7 +361,7 @@ function getVault(id) {
                   var name = obj.displayProperties.name;
                   var icon = "https://www.bungie.net" + obj.displayProperties.icon;
                   var screenshot = "https://www.bungie.net" + obj.screenshot;
-                  var push = { "itemInstanceId": itemInstanceId, "itemHash": itemHash, "name": name, "icon": icon, "screenshot": screenshot, "type": type, "location": location};
+                  var push = { "itemInstanceId": itemInstanceId, "itemHash": itemHash, "name": name, "icon": icon, "screenshot": screenshot, "type": type, "location": key};
                   equipables.push(push);
                  }
               }
@@ -371,58 +372,7 @@ function getVault(id) {
               }
             });
           });
-        // var config = {
-        //   method: 'get',
-        //   url: 'https://www.bungie.net/Platform/Destiny2/3/profile/' + id + '/?components=205',
-        //   headers: {
-        //     'X-API-Key': XAPIKey
-        //   }
-        // };
-
-        // axios(config)
-        //   .then(function (response) {
-        //     var data = JSON.parse(JSON.stringify(response.data)).Response.characterEquipment.data;
-        //     var equipables = [];
-        //     for(var i = 0; i < data.items.length; i++){
-        //       var bucketHash = data.items[i].bucketHash;
-        //       if(bucketHash === 138197802){
-        //         var itemInstanceId = data.items[i].itemInstanceId;
-        //         var itemHash = data.items[i].itemHash;
-        //         var obj = JSON.parse(getIcon(itemHash));
-        //         var type = obj.inventory.bucketTypeHash;
-        //         switch(type){
-        //           case 1498876634:
-        //             type ="Kinetic";
-        //             break;
-        //           case 2465295065:
-        //             type ="Energy";
-        //             break;
-        //           case 953998645:
-        //             type ="Power";
-        //             break;
-        //           case 3448274439:
-        //             type ="Helmet";
-        //             break;
-        //           case 3551918588:
-        //             type ="Gauntlets";
-        //             break;
-        //           case 14239492:
-        //             type ="Chest";
-        //             break;
-        //           case 20886954:
-        //             type ="Legs";
-        //             break;
-        //           case 1585787867:
-        //             type ="Class";
-        //         }
-        //         var name = obj.displayProperties.name;
-        //         var icon = "https://www.bungie.net"+obj.displayProperties.icon;
-        //         var screenshot = "https://www.bungie.net"+obj.screenshot;
-        //         var push = {"itemInstanceId":itemInstanceId,"itemHash":itemHash,"name":name,"icon":icon, "screenshot":screenshot, "type":type, "vault":true};
-        //         equipables.push(push);
-        //       }
-        //     }
-        //   });
+        //TODO: get equipped items component 205
       }).then(function () {
         resolve(this.responseText);
       })
@@ -433,6 +383,7 @@ function getVault(id) {
 }
 
 server.listen(443);
+console.log("Ready!")
 }).catch((error) => {
   console.log(error);
 });
