@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en-US">
+    <head>
+        <title>Loadout Manager</title>
+        <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+        <script>
+            var d2id;
+            var currentChar = "none";
+            var classes = ["Titan", "Hunter", "Warlock"];
+            function setCurrent(char, classType){
+                currentChar = char;
+                document.getElementById("select").innerHTML = classType;
+            }
+            const params = new Proxy(new URLSearchParams(window.location.search), {
+                get: (searchParams, prop) => searchParams.get(prop),
+            });
+            let value = params.user;
+            fetch("/?user="+value+".profile.json&type=1")
+            .then((response) => {
+                if (response.ok) {
+                    return response.text();
+            } else {
+                throw new Error("NETWORK RESPONSE ERROR");
+            }}).then(data => {
+                document.getElementById("name").innerHTML = JSON.parse(data).name;
+            });
+            
+            //fetch username
+            fetch("/?user="+value+".profile.json&type=1")
+            .then((response) => {
+                if (response.ok) {
+                    return response.text();
+            } else {
+                throw new Error("NETWORK RESPONSE ERROR");
+            }}).then(data => {
+                var id = JSON.parse(data).membershipId;
+                d2id = id;
+                var chars = JSON.parse(data).classes;
+                for(character in chars){
+                    character = chars[character];  
+                    classType = classes[character.classType];
+                    charID = character.charId;
+                    var charButton = document.createElement('button');
+                    charButton.setAttribute("onclick",`setCurrent( "${charID}","${classType}")`);
+                    charButton.innerText = classType;
+                    document.getElementById("characters").appendChild(charButton);
+                }
+                chars = JSON.stringify(chars);
+                fetch("/?user="+id+".vault.json&type=1")
+                .then((response) => {
+                if (response.ok) {
+                    return response.text();
+                } else {
+                    throw new Error("NETWORK RESPONSE ERROR");
+                }}).then(data => {
+                    var vault = JSON.parse(data);
+                    refresh(vault);
+                });
+            });
+            function refresh(vault){
+                for(var i = 0; i < vault.data.length; i++){
+                        var type = vault.data[i].type;
+                        var icon = vault.data[i].icon;
+                        var location = vault.data[i].location =="vault";
+                        let add = document.createElement('img');
+                        add.setAttribute("src",icon);
+
+                        let button = document.createElement('button');
+                        button.setAttribute("onclick",`transferItem( "${vault.data[i].itemHash}","${1}","${location}","${vault.data[i].itemInstanceId}","${3}" )`);
+                        button.appendChild(add);
+
+                        let div = document.createElement('div');
+                        div.setAttribute("class","hoverwrap");
+                        div.setAttribute("id",vault.data[i].itemInstanceId);
+
+                        let caption = document.createElement('div');
+                        caption.setAttribute("class","hovercap");
+                        caption.innerText = vault.data[i].name;
+
+                        try{
+                            if(!location){
+                                document.getElementById(type).children[0].appendChild(div);
+                            }else{
+                                document.getElementById(type).children[1].appendChild(div);
+                            }
+                        }catch{
+                            document.getElementById("vault").appendChild(div);
+                        }
+                        document.getElementById(vault.data[i].itemInstanceId).appendChild(button);
+                        document.getElementById(vault.data[i].itemInstanceId).appendChild(caption);
+                    }
+            }
+            function refreshVault(){
+                var temp = document.getElementsByClassName("inventory");
+                for(var i = 0; i < temp.length; i++){
+                    temp[i].innerHTML = "";
+                }
+                temp = document.getElementsByClassName("equip");
+                for(var i = 0; i < temp.length; i++){
+                    temp[i].innerHTML = "";
+                }
+                fetch("/refresh?id="+d2id).then((response) => {
+                    
+                fetch("/?user="+value+".profile.json&type=1")
+                .then((response) => {
+                    if (response.ok) {
+                        return response.text();
+                } else {
+                    throw new Error("NETWORK RESPONSE ERROR");
+                }}).then(data => {
+                    var id = JSON.parse(data).membershipId;
+                    fetch("/?user="+id+".vault.json&type=1")
+                    .then((response) => {
+                    if (response.ok) {
+                        return response.text();
+                    } else {
+                        throw new Error("NETWORK RESPONSE ERROR");
+                    }}).then(data => {
+                        var vault = JSON.parse(data);
+                        refresh(vault);
+                    });
+                });
+            });
+            }
+            function transferItem(hash, stack, vault, instance, membership){
+                if(currentChar=="none"){
+                    alert("Select a character!");
+                }else{
+                    fetch("/moveitem?hash="+hash+"&stack="+stack+"&vault="+vault+"&instance="+instance+"&currentChar="+currentChar+"&membership="+membership+"&id="+value)
+                    .then((response) => {
+                        if(response.ok){
+                            console.log("Success: transfer item");
+                            if(vault == "true"){
+                                vault = "false";
+                            }else{
+                                vault ="true";
+                            }
+                            document.getElementById(instance).firstChild.setAttribute("onclick",`transferItem( "${hash}","${1}","${vault}","${instance}","${3}" )`);
+                            var temp = document.getElementById(instance);
+                            var sibling = document.getElementById(instance).parentElement.className == "inventory";
+                            var grandparent = document.getElementById(instance).parentElement.parentElement;
+                            document.getElementById(instance).remove();
+                            if(sibling){
+                                grandparent.firstChild.nextSibling.appendChild(temp);
+                            }else{
+                                grandparent.lastChild.previousSibling.appendChild(temp);
+                            }
+
+                        }else{
+                            console.log("Failure: ");
+                            console.log(response);
+                        }
+                    });
+                }
+            }
+        </script>
+        <style>
+#Kinetic, #Energy, #Power, #Helmet, #Gauntlets, #Chest, #Legs, #Class{
+    display: grid;
+    grid-template-columns: 1fr 3fr;
+}
+.equip{
+    grid-column: 1/2;
+}
+.inventory{
+    grid-column: 2/3;
+}
+#overlayImg{
+    position:relative;
+    transform: scale(50%);
+}
+
+body{
+    color:white;
+    background-color: #181a1b;
+    text-align: center;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+h1, h3{
+    margin: 5px;
+}
+
+button{
+    margin: 0px;
+    padding: 0px;
+    border-width: 0px;
+    border: 0px;
+    background-color: #181a1b;
+}
+
+.hoverwrap {
+    float: left;
+    transform: scale(100%);
+}
+
+.hoverwrap img { width: 100%; }
+
+.hovercap {
+    pointer-events: none;
+    font-size: 15px;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 10px;
+    position: absolute;
+    bottom: 0; left: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+}
+
+.hovercap {
+    visibility: none; opacity: 0;
+    transition: opacity 0.3s;
+}
+.hoverwrap:hover .hovercap {
+    visibility: visible; opacity: 1;
+}
+#characters *{
+    color: white;
+    background-color: rgb(50, 50, 50);
+    font-size: 30px;
+    margin-left: 20px;
+}
+        
+        </style>
+    </head>
+    <body>
+        <h1>Welcome, <span id="name"></span></h1>
+        <h3>Bookmark <em>this</em> page.</h3>
+        <h3>First time visitors may need to refresh the page.</h3>
+        <button onclick="refreshVault()">Refresh</button>
+        <div id=characters></div>
+        <h3>Current selection: <span id="select">none</span></h3>
+        <div id="alert">
+
+        </div>
+        <div id="vault">
+            <div id="Kinetic">
+                <div class="equip"></div>
+                <div class="inventory"></div>
+            </div>
+            <div id="Energy">
+                <div class="equip"></div>
+                <div class="inventory"></div>
+            </div>
+            <div id="Power">
+                <div class="equip"></div>
+                <div class="inventory"></div>
+            </div>
+            <div id="Helmet">
+                <div class="equip"></div>
+                <div class="inventory"></div>
+            </div>
+            <div id="Gauntlets">
+                <div class="equip"></div>
+                <div class="inventory"></div>
+            </div>
+            <div id="Chest">
+                <div class="equip"></div>
+                <div class="inventory"></div>
+            </div>
+            <div id="Legs">
+                <div class="equip"></div>
+                <div class="inventory"></div>
+            </div>
+            <div id="Class">
+                <div class="equip"></div>
+                <div class="inventory"></div>
+            </div>
+        </div>
+    </body>
+</html>
