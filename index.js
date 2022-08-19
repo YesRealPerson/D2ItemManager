@@ -103,8 +103,9 @@ manifestPromise().then((res) => {
   axios(config).then(function (response) {
     res.status(200).send();
   }).catch(function(error){
-    res.status(500).send();
-    console.log(error);
+    res.statusMessage = error.response.data.Message;
+    res.status(500).end();
+    console.log(error.response.data.Message);
   })
 });
 

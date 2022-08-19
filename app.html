@@ -40,6 +40,13 @@
                     character = chars[character];  
                     classType = classes[character.classType];
                     charID = character.charId;
+                    var equip = document.getElementsByClassName('equip');
+                    for(var i = 0; i < equip.length; i++){
+                        var charDiv = document.createElement('div');
+                        charDiv.id = charID+""+equip[i].parentElement.id;
+                        charDiv.innerHTML = " ";
+                        equip[i].appendChild(charDiv);
+                    }
                     var charButton = document.createElement('button');
                     charButton.setAttribute("onclick",`setCurrent( "${charID}","${classType}")`);
                     charButton.innerText = classType;
@@ -80,7 +87,7 @@
 
                         try{
                             if(!location){
-                                document.getElementById(type).children[0].appendChild(div);
+                                document.getElementById(currentLocation+""+type).appendChild(div);
                             }else{
                                 document.getElementById(type).children[1].appendChild(div);
                             }
@@ -98,7 +105,12 @@
                 }
                 temp = document.getElementsByClassName("equip");
                 for(var i = 0; i < temp.length; i++){
-                    temp[i].innerHTML = "";
+                    var children = temp[i].children;
+                    for(var j = 0; j < children.length; j++){
+                        while(children[j].lastChild){
+                            children[j].removeChild(children[j].lastChild);
+                        }
+                    }
                 }
                 fetch("/refresh?id="+d2id).then((response) => {
                     
@@ -123,6 +135,7 @@
                 });
             });
             }
+
             function transferItem(hash, stack, vault, instance, membership, currentLocation){
                 vault = vault =="true";
                 if(currentChar=="none"){
@@ -133,16 +146,19 @@
                         charToMove = currentLocation;
                     }
                     fetch("/moveitem?hash="+hash+"&stack="+stack+"&vault="+vault+"&instance="+instance+"&currentChar="+charToMove+"&membership="+membership+"&id="+value)
-                    .then((response) => {
+                    .then(async (response) => {
                         if(response.ok){
                             console.log("Success: transfer item");
                             if(vault){
                                 vault = "false";
+                                charLocation = "vault";
                             }else{
                                 vault ="true";
+                                charLocation = charToMove;
                             }
                             document.getElementById(instance).firstChild.setAttribute("onclick",`transferItem( "${hash}","${1}","${vault}","${instance}","${3}","${charToMove}" )`);
                             var temp = document.getElementById(instance);
+                            temp.className = "hoverwrap "+charLocation;
                             var sibling = document.getElementById(instance).parentElement.className == "inventory";
                             var grandparent = document.getElementById(instance).parentElement.parentElement;
                             document.getElementById(instance).remove();
@@ -151,10 +167,24 @@
                             }else{
                                 grandparent.lastChild.previousSibling.appendChild(temp);
                             }
-
+                            var status = document.getElementById("status");
+                            var message = document.createElement("p");
+                            var random = Math.random().toString;
+                            message.innerHTML = "Successful transfer!";
+                            message.setAttribute("id", random);
+                            status.appendChild(message);
+                            await new Promise(r => setTimeout(r, 2500));
+                            document.getElementById(random).remove();
                         }else{
-                            console.log("Failure: ");
-                            console.log(response);
+                            console.log("Failure: "+response.statusText);
+                            var status = document.getElementById("status");
+                            var message = document.createElement("p");
+                            var random = Math.random().toString;
+                            message.innerHTML = response.statusText;
+                            message.setAttribute("id", random);
+                            status.appendChild(message);
+                            await new Promise(r => setTimeout(r, 2500));
+                            document.getElementById(random).remove();
                         }
                     });
                 }
@@ -227,6 +257,20 @@ button{
     font-size: 30px;
     margin-left: 20px;
 }
+#status{
+    position: fixed;
+    z-index: 10;
+    top: 50px;
+    right: 50px;
+    opacity: 100;
+    color: white;
+    background-color: black;
+    font-size: 25px;
+    width: 500px;
+}
+button{
+    color: white;
+}
         
         </style>
     </head>
@@ -237,9 +281,8 @@ button{
         <button onclick="refreshVault()">Refresh</button>
         <div id=characters></div>
         <h3>Current selection: <span id="select">none</span></h3>
-        <div id="alert">
-
-        </div>
+        <div id="alert"></div>
+        <div id="status"></div>
         <div id="vault">
             <div id="Kinetic">
                 <div class="equip"></div>
