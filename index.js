@@ -106,7 +106,15 @@ manifestPromise().then((res) => {
     res.statusMessage = error.response.data.Message;
     res.status(500).end();
     console.log(error.response.data.Message);
-  })
+  }).then(function() {
+    var profile = req.query.profile;
+    var number = req.query.number;
+    var vault = JSON.parse(fs.readFileSync("./"+profile+".vault.json"));
+    console.log(vault.data[number][number].location);
+    vault.data[number][number].location = data[4];
+    console.log(vault.data[number][number].location);
+    fs.writeFileSync(profile+".vault.json", JSON.stringify(vault));
+  });
 });
 
 //login page
@@ -273,6 +281,7 @@ function getVault(id) {
       .then(function (response) {
         var data = JSON.parse(JSON.stringify(response.data)).Response.profileInventory.data;
         var equipables = [];
+        var pos = 0;
         for (var i = 0; i < data.items.length; i++) {
           var bucketHash = data.items[i].bucketHash;
           if (bucketHash === 138197802) {
@@ -308,7 +317,8 @@ function getVault(id) {
             var name = obj.displayProperties.name;
             var icon = "https://www.bungie.net" + obj.displayProperties.icon;
             var screenshot = "https://www.bungie.net" + obj.screenshot;
-            var push = { "itemInstanceId": itemInstanceId, "itemHash": itemHash, "name": name, "icon": icon, "screenshot": screenshot, "type": type, "location": "vault" };
+            var push = {[pos]: { "itemInstanceId": itemInstanceId, "itemHash": itemHash, "name": name, "icon": icon, "screenshot": screenshot, "type": type, "location": "vault" } };
+            pos+=1;
             equipables.push(push);
           }
         }
@@ -362,7 +372,8 @@ function getVault(id) {
                   var name = obj.displayProperties.name;
                   var icon = "https://www.bungie.net" + obj.displayProperties.icon;
                   var screenshot = "https://www.bungie.net" + obj.screenshot;
-                  var push = { "itemInstanceId": itemInstanceId, "itemHash": itemHash, "name": name, "icon": icon, "screenshot": screenshot, "type": type, "location": key};
+                  var push = {[pos]: { "itemInstanceId": itemInstanceId, "itemHash": itemHash, "name": name, "icon": icon, "screenshot": screenshot, "type": type, "location": key} };
+                  pos+=1;
                   equipables.push(push);
                  }
               }

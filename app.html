@@ -61,29 +61,30 @@
                     throw new Error("NETWORK RESPONSE ERROR");
                 }}).then(data => {
                     var vault = JSON.parse(data);
-                    refresh(vault);
+                    refresh(vault, id);
                 });
             });
-            function refresh(vault){
+            function refresh(vault, profile){
                 for(var i = 0; i < vault.data.length; i++){
-                        var type = vault.data[i].type;
-                        var icon = vault.data[i].icon;
-                        var location = vault.data[i].location =="vault";
-                        var currentLocation = vault.data[i].location;
+                        console.log(vault.data[i][i].itemInstanceId);
+                        var type = vault.data[i][i].type;
+                        var icon = vault.data[i][i].icon;
+                        var location = vault.data[i][i].location =="vault";
+                        var currentLocation = vault.data[i][i].location;
                         let add = document.createElement('img');
                         add.setAttribute("src",icon);
 
                         let button = document.createElement('button');
-                        button.setAttribute("onclick",`transferItem( "${vault.data[i].itemHash}","${1}","${!location}","${vault.data[i].itemInstanceId}","${3}","${currentLocation}" )`);
+                        button.setAttribute("onclick",`transferItem( "${vault.data[i][i].itemHash}","${1}","${!location}","${vault.data[i][i].itemInstanceId}","${3}","${currentLocation}","${i}","${profile}" )`);
                         button.appendChild(add);
 
                         let div = document.createElement('div');
-                        div.setAttribute("class","hoverwrap "+currentLocation);
-                        div.setAttribute("id",vault.data[i].itemInstanceId);
+                        div.setAttribute("class","hoverwrap "+currentLocation+" "+i);
+                        div.setAttribute("id",vault.data[i][i].itemInstanceId);
 
                         let caption = document.createElement('div');
                         caption.setAttribute("class","hovercap");
-                        caption.innerText = vault.data[i].name;
+                        caption.innerText = vault.data[i][i].name;
 
                         try{
                             if(!location){
@@ -94,24 +95,11 @@
                         }catch{
                             document.getElementById("vault").appendChild(div);
                         }
-                        document.getElementById(vault.data[i].itemInstanceId).appendChild(button);
-                        document.getElementById(vault.data[i].itemInstanceId).appendChild(caption);
+                        document.getElementById(vault.data[i][i].itemInstanceId).appendChild(button);
+                        document.getElementById(vault.data[i][i].itemInstanceId).appendChild(caption);
                     }
             }
             function refreshVault(){
-                var temp = document.getElementsByClassName("inventory");
-                for(var i = 0; i < temp.length; i++){
-                    temp[i].innerHTML = "";
-                }
-                temp = document.getElementsByClassName("equip");
-                for(var i = 0; i < temp.length; i++){
-                    var children = temp[i].children;
-                    for(var j = 0; j < children.length; j++){
-                        while(children[j].lastChild){
-                            children[j].removeChild(children[j].lastChild);
-                        }
-                    }
-                }
                 fetch("/refresh?id="+d2id).then((response) => {
                     
                 fetch("/?user="+value+".profile.json&type=1")
@@ -129,6 +117,19 @@
                     } else {
                         throw new Error("NETWORK RESPONSE ERROR");
                     }}).then(data => {
+                        var temp = document.getElementsByClassName("inventory");
+                for(var i = 0; i < temp.length; i++){
+                    temp[i].innerHTML = "";
+                }
+                temp = document.getElementsByClassName("equip");
+                for(var i = 0; i < temp.length; i++){
+                    var children = temp[i].children;
+                    for(var j = 0; j < children.length; j++){
+                        while(children[j].lastChild){
+                            children[j].removeChild(children[j].lastChild);
+                        }
+                    }
+                }
                         var vault = JSON.parse(data);
                         refresh(vault);
                     });
@@ -136,7 +137,9 @@
             });
             }
 
-            function transferItem(hash, stack, vault, instance, membership, currentLocation){
+            function transferItem(hash, stack, vault, instance, membership, currentLocation, number, profile){
+                console.log(number);
+                console.log(profile)
                 vault = vault =="true";
                 if(currentChar=="none"){
                     alert("Select a character!");
@@ -145,7 +148,7 @@
                     if(vault){
                         charToMove = currentLocation;
                     }
-                    fetch("/moveitem?hash="+hash+"&stack="+stack+"&vault="+vault+"&instance="+instance+"&currentChar="+charToMove+"&membership="+membership+"&id="+value)
+                    fetch("/moveitem?hash="+hash+"&stack="+stack+"&vault="+vault+"&instance="+instance+"&currentChar="+charToMove+"&membership="+membership+"&id="+value+"&profile="+profile+"&number="+number)
                     .then(async (response) => {
                         if(response.ok){
                             console.log("Success: transfer item");
@@ -158,14 +161,15 @@
                             }
                             document.getElementById(instance).firstChild.setAttribute("onclick",`transferItem( "${hash}","${1}","${vault}","${instance}","${3}","${charToMove}" )`);
                             var temp = document.getElementById(instance);
-                            temp.className = "hoverwrap "+charLocation;
+                            temp.className = "hoverwrap "+charLocation+" "+number;
                             var sibling = document.getElementById(instance).parentElement.className == "inventory";
                             var grandparent = document.getElementById(instance).parentElement.parentElement;
+                            var type = grandparent.id;
                             document.getElementById(instance).remove();
                             if(sibling){
-                                grandparent.firstChild.nextSibling.appendChild(temp);
+                                document.getElementById(charLocation+type).appendChild(temp);
                             }else{
-                                grandparent.lastChild.previousSibling.appendChild(temp);
+                                grandparent.parentElement.lastChild.previousSibling.appendChild(temp);
                             }
                             var status = document.getElementById("status");
                             var message = document.createElement("p");
@@ -193,10 +197,13 @@
         <style>
 #Kinetic, #Energy, #Power, #Helmet, #Gauntlets, #Chest, #Legs, #Class{
     display: grid;
-    grid-template-columns: 1fr 3fr;
 }
 .equip{
     grid-column: 1/2;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    min-width: 900px;
+    max-width: 900px;
 }
 .inventory{
     grid-column: 2/3;
