@@ -65,26 +65,27 @@
                 });
             });
             function refresh(vault, profile){
-                for(var i = 0; i < vault.data.length; i++){
-                        console.log(vault.data[i][i].itemInstanceId);
-                        var type = vault.data[i][i].type;
-                        var icon = vault.data[i][i].icon;
-                        var location = vault.data[i][i].location =="vault";
-                        var currentLocation = vault.data[i][i].location;
+                vault = vault.data;
+                for(var i = 0; i < vault.length; i++){
+                    var key = Object.keys(vault[i])[0];
+                        var type = vault[i][key].type;
+                        var icon = vault[i][key].icon;
+                        var location = vault[i][key].location =="vault";
+                        var currentLocation = vault[i][key].location;
                         let add = document.createElement('img');
                         add.setAttribute("src",icon);
 
                         let button = document.createElement('button');
-                        button.setAttribute("onclick",`transferItem( "${vault.data[i][i].itemHash}","${1}","${!location}","${vault.data[i][i].itemInstanceId}","${3}","${currentLocation}","${i}","${profile}" )`);
+                        button.setAttribute("onclick",`transferItem( "${vault[i][key].itemHash}","${1}","${!location}","${key}","${3}","${currentLocation}","${i}","${profile}","${vault[i][key].name}" )`);
                         button.appendChild(add);
 
                         let div = document.createElement('div');
                         div.setAttribute("class","hoverwrap "+currentLocation+" "+i);
-                        div.setAttribute("id",vault.data[i][i].itemInstanceId);
+                        div.setAttribute("id",key);
 
                         let caption = document.createElement('div');
                         caption.setAttribute("class","hovercap");
-                        caption.innerText = vault.data[i][i].name;
+                        caption.innerText = vault[i][key].name;
 
                         try{
                             if(!location){
@@ -95,8 +96,8 @@
                         }catch{
                             document.getElementById("vault").appendChild(div);
                         }
-                        document.getElementById(vault.data[i][i].itemInstanceId).appendChild(button);
-                        document.getElementById(vault.data[i][i].itemInstanceId).appendChild(caption);
+                        document.getElementById(key).appendChild(button);
+                        document.getElementById(key).appendChild(caption);
                     }
             }
             function refreshVault(){
@@ -137,13 +138,17 @@
             });
             }
 
-            function transferItem(hash, stack, vault, instance, membership, currentLocation, number, profile){
-                console.log(number);
-                console.log(profile)
+            function transferItem(hash, stack, vault, instance, membership, currentLocation, number, profile, name){
                 vault = vault =="true";
                 if(currentChar=="none"){
                     alert("Select a character!");
                 }else{
+                    var status = document.getElementById("status");
+                    var message = document.createElement("p");
+                    var random = Math.random().toString;
+                    message.innerHTML = "Attempting transfer of "+name;
+                    message.setAttribute("id", random);
+                    status.appendChild(message);
                     var charToMove = currentChar;
                     if(vault){
                         charToMove = currentLocation;
@@ -171,22 +176,14 @@
                             }else{
                                 grandparent.parentElement.lastChild.previousSibling.appendChild(temp);
                             }
-                            var status = document.getElementById("status");
-                            var message = document.createElement("p");
-                            var random = Math.random().toString;
-                            message.innerHTML = "Successful transfer!";
-                            message.setAttribute("id", random);
-                            status.appendChild(message);
+                            
+                            document.getElementById(random).innerHTML = "Successful transfer!"
                             await new Promise(r => setTimeout(r, 2500));
                             document.getElementById(random).remove();
                         }else{
                             console.log("Failure: "+response.statusText);
-                            var status = document.getElementById("status");
-                            var message = document.createElement("p");
-                            var random = Math.random().toString;
-                            message.innerHTML = response.statusText;
-                            message.setAttribute("id", random);
-                            status.appendChild(message);
+                            
+                            document.getElementById(random).innerHTML = "Transfer failed!"
                             await new Promise(r => setTimeout(r, 2500));
                             document.getElementById(random).remove();
                         }

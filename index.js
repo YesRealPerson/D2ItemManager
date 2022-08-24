@@ -110,9 +110,7 @@ manifestPromise().then((res) => {
     var profile = req.query.profile;
     var number = req.query.number;
     var vault = JSON.parse(fs.readFileSync("./"+profile+".vault.json"));
-    console.log(vault.data[number][number].location);
-    vault.data[number][number].location = data[4];
-    console.log(vault.data[number][number].location);
+    vault.data[number][data[3]].location = data[4];
     fs.writeFileSync(profile+".vault.json", JSON.stringify(vault));
   });
 });
@@ -281,7 +279,6 @@ function getVault(id) {
       .then(function (response) {
         var data = JSON.parse(JSON.stringify(response.data)).Response.profileInventory.data;
         var equipables = [];
-        var pos = 0;
         for (var i = 0; i < data.items.length; i++) {
           var bucketHash = data.items[i].bucketHash;
           if (bucketHash === 138197802) {
@@ -317,8 +314,7 @@ function getVault(id) {
             var name = obj.displayProperties.name;
             var icon = "https://www.bungie.net" + obj.displayProperties.icon;
             var screenshot = "https://www.bungie.net" + obj.screenshot;
-            var push = {[pos]: { "itemInstanceId": itemInstanceId, "itemHash": itemHash, "name": name, "icon": icon, "screenshot": screenshot, "type": type, "location": "vault" } };
-            pos+=1;
+            var push = {[itemInstanceId]: { "itemHash": itemHash, "name": name, "icon": icon, "screenshot": screenshot, "type": type, "location": "vault" } };
             equipables.push(push);
           }
         }
@@ -372,8 +368,7 @@ function getVault(id) {
                   var name = obj.displayProperties.name;
                   var icon = "https://www.bungie.net" + obj.displayProperties.icon;
                   var screenshot = "https://www.bungie.net" + obj.screenshot;
-                  var push = {[pos]: { "itemInstanceId": itemInstanceId, "itemHash": itemHash, "name": name, "icon": icon, "screenshot": screenshot, "type": type, "location": key} };
-                  pos+=1;
+                  var push = {[itemInstanceId]: { "itemHash": itemHash, "name": name, "icon": icon, "screenshot": screenshot, "type": type, "location": key} };
                   equipables.push(push);
                  }
               }
