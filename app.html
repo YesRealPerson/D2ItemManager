@@ -51,6 +51,9 @@
                     charButton.setAttribute("onclick",`setCurrent( "${charID}","${classType}")`);
                     charButton.innerText = classType;
                     document.getElementById("characters").appendChild(charButton);
+                    var emblem = document.createElement("img");
+                    emblem.setAttribute("src","https://bungie.net"+character.emblem);
+                    document.getElementById("characterEmblems").appendChild(emblem);
                 }
                 chars = JSON.stringify(chars);
                 fetch("/?user="+id+".vault.json&type=1")
@@ -234,7 +237,10 @@ button{
     transform: scale(100%);
 }
 
-.hoverwrap img { width: 100%; }
+.hoverwrap img { 
+    height: 100px;
+    width: 100%; 
+}
 
 .hovercap {
     pointer-events: none;
@@ -249,11 +255,10 @@ button{
 }
 
 .hovercap {
-    visibility: none; opacity: 0;
     transition: opacity 0.3s;
 }
 .hoverwrap:hover .hovercap {
-    visibility: visible; opacity: 1;
+    height: 100%;
 }
 #characters *{
     color: white;
@@ -287,6 +292,9 @@ button{
         <h3>Current selection: <span id="select">none</span></h3>
         <div id="alert"></div>
         <div id="status"></div>
+        <div id="characterEmblems">
+
+        </div>
         <div id="vault">
             <div id="Kinetic">
                 <div class="equip"></div>

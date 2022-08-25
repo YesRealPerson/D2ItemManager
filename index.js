@@ -248,6 +248,7 @@ function getCharacters(id) {
           charsArray.push({
             "classType": obj.Response.characters.data[char].classType,
             "charId": obj.Response.characters.data[char].characterId,
+            "emblem": obj.Response.characters.data[char].emblemBackgroundPath,
           });
         });
         endJSON.classes = charsArray;
