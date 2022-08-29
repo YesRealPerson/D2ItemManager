@@ -73,8 +73,14 @@
                     var key = Object.keys(vault[i])[0];
                         var type = vault[i][key].type;
                         var icon = vault[i][key].icon;
+                        var rarity = vault[i][key].rarity;
                         var location = vault[i][key].location =="vault";
                         var currentLocation = vault[i][key].location;
+                        try{
+                            rarity = rarity.split(" ")[0];
+                        }catch{
+                            rarity = "undefined";
+                        }
                         let add = document.createElement('img');
                         add.setAttribute("src",icon);
 
@@ -83,12 +89,21 @@
                         button.appendChild(add);
 
                         let div = document.createElement('div');
-                        div.setAttribute("class","hoverwrap "+currentLocation+" "+i);
+                        div.setAttribute("class","hoverwrap "+currentLocation+" "+i+" "+rarity);
                         div.setAttribute("id",key);
 
                         let caption = document.createElement('div');
                         caption.setAttribute("class","hovercap");
                         caption.innerText = vault[i][key].name;
+
+                        let hover = document.createElement('div');
+                        hover.setAttribute("class","darken");
+
+                        try{
+                            rarity = rarity.split(" ")[0];
+                        }catch{
+                            rarity = "undefined";
+                        }
 
                         try{
                             if(!location){
@@ -101,6 +116,7 @@
                         }
                         document.getElementById(key).appendChild(button);
                         document.getElementById(key).appendChild(caption);
+                        document.getElementById(key).appendChild(hover);
                     }
             }
             function refreshVault(){
@@ -253,12 +269,20 @@ button{
     background-color: rgba(0, 0, 0, 0.5);
     color: white;
 }
-
-.hovercap {
-    transition: opacity 0.3s;
+.darken{
+    pointer-events: none;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    padding: 10px;
+    position: absolute;
+    bottom: 0; left: 0;
+}
+.hoverwrap:hover .darken {
+    background-color: rgba(0,0,0,0.5);
 }
 .hoverwrap:hover .hovercap {
-    height: 100%;
+    background-color: rgba(0,0,0,0);
 }
 #characters *{
     color: white;

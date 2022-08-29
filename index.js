@@ -282,10 +282,11 @@ function getVault(id) {
         var equipables = [];
         for (var i = 0; i < data.items.length; i++) {
           var bucketHash = data.items[i].bucketHash;
-          if (bucketHash === 138197802) {
+          if (bucketHash === 138197802) { 
             var itemInstanceId = data.items[i].itemInstanceId;
             var itemHash = data.items[i].itemHash;
             var obj = JSON.parse(getIcon(itemHash));
+            var rarity = obj.itemTypeAndTierDisplayName;
             var type = obj.inventory.bucketTypeHash;
             switch (type) {
               case 1498876634:
@@ -315,7 +316,7 @@ function getVault(id) {
             var name = obj.displayProperties.name;
             var icon = "https://www.bungie.net" + obj.displayProperties.icon;
             var screenshot = "https://www.bungie.net" + obj.screenshot;
-            var push = {[itemInstanceId]: { "itemHash": itemHash, "name": name, "icon": icon, "screenshot": screenshot, "type": type, "location": "vault" } };
+            var push = {[itemInstanceId]: { "itemHash": itemHash, "name": name, "icon": icon, "screenshot": screenshot, "type": type, "location": "vault", "rarity":rarity } };
             equipables.push(push);
           }
         }
@@ -340,6 +341,7 @@ function getVault(id) {
                   var itemInstanceId = data.items[i].itemInstanceId;
                   var itemHash = data.items[i].itemHash;
                   var obj = JSON.parse(getIcon(itemHash));
+                  var rarity = obj.itemTypeAndTierDisplayName;
                   var type = obj.inventory.bucketTypeHash;
                   switch (type) {
                     case 1498876634:
@@ -369,7 +371,7 @@ function getVault(id) {
                   var name = obj.displayProperties.name;
                   var icon = "https://www.bungie.net" + obj.displayProperties.icon;
                   var screenshot = "https://www.bungie.net" + obj.screenshot;
-                  var push = {[itemInstanceId]: { "itemHash": itemHash, "name": name, "icon": icon, "screenshot": screenshot, "type": type, "location": key} };
+                  var push = {[itemInstanceId]: { "itemHash": itemHash, "name": name, "icon": icon, "screenshot": screenshot, "type": type, "location": key,"rarity":rarity} };
                   equipables.push(push);
                  }
               }
