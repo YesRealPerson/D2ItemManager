@@ -8,8 +8,14 @@
             var currentChar = "none";
             var classes = ["Titan", "Hunter", "Warlock"];
             function setCurrent(char, classType){
+                var selectors = document.getElementsByClassName("selector");
+                for(var i = 0; i < selectors.length; i++){
+                    if(selectors[i].id != "refresh"){
+                        console.log(selectors[i]);
+                    }
+                }
                 currentChar = char;
-                document.getElementById("select").innerHTML = classType;
+                // document.getElementById("select").innerHTML = classType;
             }
             const params = new Proxy(new URLSearchParams(window.location.search), {
                 get: (searchParams, prop) => searchParams.get(prop),
@@ -50,10 +56,14 @@
                     var charButton = document.createElement('button');
                     charButton.setAttribute("onclick",`setCurrent( "${charID}","${classType}")`);
                     charButton.innerText = classType;
+                    charButton.setAttribute("class","selector");
+                    charButton.setAttribute("id",charID);
+                    charButton.style.backgroundImage = 'url("https://bungie.net'+character.emblem+'")'
+                    charButton.style.width = "474px";
+                    charButton.style.height = "96px";
+                    charButton.style.textAlign = "left";
+                    charButton.style.paddingLeft = "90px";
                     document.getElementById("characters").appendChild(charButton);
-                    var emblem = document.createElement("img");
-                    emblem.setAttribute("src","https://bungie.net"+character.emblem);
-                    document.getElementById("characterEmblems").appendChild(emblem);
                 }
                 chars = JSON.stringify(chars);
                 fetch("/?user="+id+".vault.json&type=1")
@@ -183,7 +193,7 @@
                                 vault ="true";
                                 charLocation = charToMove;
                             }
-                            document.getElementById(instance).firstChild.setAttribute("onclick",`transferItem( "${hash}","${1}","${vault}","${instance}","${3}","${charToMove}" )`);
+                            document.getElementById(instance).firstChild.setAttribute("onclick",`transferItem( "${hash}","${1}","${vault}","${instance}","${3}","${charToMove}","${number}","${profile}","${name}" )`);
                             var temp = document.getElementById(instance);
                             temp.className = "hoverwrap "+charLocation+" "+number;
                             var sibling = document.getElementById(instance).parentElement.className == "inventory";
@@ -202,7 +212,7 @@
                         }else{
                             console.log("Failure: "+response.statusText);
                             
-                            document.getElementById(random).innerHTML = "Transfer failed!"
+                            document.getElementById(random).innerHTML = response.statusText;
                             await new Promise(r => setTimeout(r, 2500));
                             document.getElementById(random).remove();
                         }
@@ -213,13 +223,14 @@
         <style>
 #Kinetic, #Energy, #Power, #Helmet, #Gauntlets, #Chest, #Legs, #Class{
     display: grid;
+    grid-template-columns: 5fr 4fr;
 }
 .equip{
     grid-column: 1/2;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    min-width: 900px;
-    max-width: 900px;
+    padding-right: 10px;
+    max-width: 1000px;
 }
 .inventory{
     grid-column: 2/3;
@@ -233,11 +244,19 @@ body{
     color:white;
     background-color: #181a1b;
     text-align: center;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
 }
 
 h1, h3{
     margin: 5px;
+}
+
+.selector{
+    border: 1px solid white;
+    color: white;
+    background-color: rgba(0,0,0,0);
+    margin: 5px;
+    padding: 5px;;
 }
 
 button{
@@ -301,17 +320,32 @@ button{
     font-size: 25px;
     width: 500px;
 }
-button{
-    color: white;
+#top{
+    display: grid;
+    grid-template-columns: 9fr 1fr;
+}
+#top > *{
+    text-align: left;
+    padding-left: 50px;
+    padding-right: 50px;
+    margin-right: 50px;
+    margin-left: 50px;
+}
+#refresh{
+    font-size: 25px;
+    background-color: rgba(0, 0, 0, 0.5);
 }
         
         </style>
+    <link rel=icon href="icon16.png" sizes="16x16" type="image/png">
+    <link rel=icon href="icon32.png" sizes="32x32 48x48" type="image/png">
+    <link rel=icon href="icon512.png" sizes="512x512" type="image/png">
     </head>
     <body>
-        <h1>Welcome, <span id="name"></span></h1>
-        <h3>Bookmark <em>this</em> page.</h3>
-        <h3>First time visitors may need to refresh the page.</h3>
-        <button onclick="refreshVault()">Refresh</button>
+        <div id="top">
+            <h1>Welcome, <span id="name"></span></h1>
+            <button class="selector" id="refresh" onclick="refreshVault()">Refresh</button>
+        </div>
         <div id=characters></div>
         <h3>Current selection: <span id="select">none</span></h3>
         <div id="alert"></div>

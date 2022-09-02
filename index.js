@@ -110,6 +110,8 @@ manifestPromise().then((res) => {
     var profile = req.query.profile;
     var number = req.query.number;
     var vault = JSON.parse(fs.readFileSync("./"+profile+".vault.json"));
+    console.log(vault.data[number][data[3]].location);
+    console.log(data[4]);
     vault.data[number][data[3]].location = data[4];
     fs.writeFileSync(profile+".vault.json", JSON.stringify(vault));
   });
