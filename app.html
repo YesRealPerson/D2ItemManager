@@ -10,12 +10,14 @@
             function setCurrent(char, classType){
                 var selectors = document.getElementsByClassName("selector");
                 for(var i = 0; i < selectors.length; i++){
-                    if(selectors[i].id != "refresh"){
-                        console.log(selectors[i]);
+                    if(selectors[i].id == char){
+                        selectors[i].style.borderColor = "rgb(150,20,20)";
+                    }else if(selectors[i].id != "refresh"){
+                        selectors[i].style.borderColor = "white";
                     }
                 }
                 currentChar = char;
-                // document.getElementById("select").innerHTML = classType;
+                document.getElementById("select").innerHTML = classType;
             }
             const params = new Proxy(new URLSearchParams(window.location.search), {
                 get: (searchParams, prop) => searchParams.get(prop),
