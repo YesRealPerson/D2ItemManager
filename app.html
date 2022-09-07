@@ -53,19 +53,20 @@
                         var charDiv = document.createElement('div');
                         charDiv.id = charID+""+equip[i].parentElement.id;
                         charDiv.innerHTML = " ";
-                        equip[i].appendChild(charDiv);
+                        equip[i].prepend(charDiv);
                     }
                     var charButton = document.createElement('button');
                     charButton.setAttribute("onclick",`setCurrent( "${charID}","${classType}")`);
                     charButton.innerText = classType;
                     charButton.setAttribute("class","selector");
                     charButton.setAttribute("id",charID);
-                    charButton.style.backgroundImage = 'url("https://bungie.net'+character.emblem+'")'
-                    charButton.style.width = "474px";
-                    charButton.style.height = "96px";
+                    charButton.style.backgroundImage = 'url("https://bungie.net'+character.emblem+'")';
+                    charButton.style.backgroundSize = 'contain'
+                    charButton.style.maxWidth = "320px";
+                    charButton.style.height = "66px";
                     charButton.style.textAlign = "left";
                     charButton.style.paddingLeft = "90px";
-                    document.getElementById("characters").appendChild(charButton);
+                    document.getElementById("characters").prepend(charButton);
                 }
                 chars = JSON.stringify(chars);
                 fetch("/?user="+id+".vault.json&type=1")
@@ -169,17 +170,25 @@
             });
             }
 
-            function transferItem(hash, stack, vault, instance, membership, currentLocation, number, profile, name){
+            async function transferItem(hash, stack, vault, instance, membership, currentLocation, number, profile, name){
                 vault = vault =="true";
+                var status = document.getElementById("status");
+                var message = document.createElement("p");
+                var random = Math.random();
+                message.innerHTML = "Attempting transfer of "+name;
+                message.setAttribute("id", random);
+                message.style.border = "1px solid white"
+                message.style.backgroundColor = "rgba(0,0,0,0.5)"
+                message.style.paddingTop = "10px";
+                message.style.paddingBottom = "10px";
+                message.style.margin = "5px";
+                message.style.pointerEvents = "none";
+                status.appendChild(message);
                 if(currentChar=="none"){
-                    alert("Select a character!");
+                    document.getElementById(random).innerHTML = "Select a character!"
+                    await new Promise(r => setTimeout(r, 2500));
+                    document.getElementById(random).remove();
                 }else{
-                    var status = document.getElementById("status");
-                    var message = document.createElement("p");
-                    var random = Math.random().toString;
-                    message.innerHTML = "Attempting transfer of "+name;
-                    message.setAttribute("id", random);
-                    status.appendChild(message);
                     var charToMove = currentChar;
                     if(vault){
                         charToMove = currentLocation;
@@ -225,16 +234,17 @@
         <style>
 #Kinetic, #Energy, #Power, #Helmet, #Gauntlets, #Chest, #Legs, #Class{
     display: grid;
-    grid-template-columns: 5fr 4fr;
+    grid-template-columns: 1000px auto;
 }
 .equip{
     grid-column: 1/2;
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 320px 320px 320px;
     padding-right: 10px;
     max-width: 1000px;
 }
 .inventory{
+    min-width: 320px;
     grid-column: 2/3;
 }
 #overlayImg{
@@ -258,6 +268,7 @@ h1, h3{
     color: white;
     background-color: rgba(0,0,0,0);
     margin: 5px;
+    margin-left: 0px;
     padding: 5px;;
 }
 
@@ -305,11 +316,14 @@ button{
 .hoverwrap:hover .hovercap {
     background-color: rgba(0,0,0,0);
 }
+#characters{
+    display: grid;
+    grid-template-columns: 320px 320px 320px auto;
+}
 #characters *{
     color: white;
     background-color: rgb(50, 50, 50);
     font-size: 30px;
-    margin-left: 20px;
 }
 #status{
     position: fixed;
@@ -318,7 +332,6 @@ button{
     right: 50px;
     opacity: 100;
     color: white;
-    background-color: black;
     font-size: 25px;
     width: 500px;
 }
@@ -337,24 +350,21 @@ button{
     font-size: 25px;
     background-color: rgba(0, 0, 0, 0.5);
 }
+#current, #current *{
+    text-align: center;
+    background-color: rgba(0,0,0,0);
+}
         
         </style>
-    <link rel=icon href="icon16.png" sizes="16x16" type="image/png">
-    <link rel=icon href="icon32.png" sizes="32x32 48x48" type="image/png">
-    <link rel=icon href="icon512.png" sizes="512x512" type="image/png">
     </head>
     <body>
         <div id="top">
             <h1>Welcome, <span id="name"></span></h1>
             <button class="selector" id="refresh" onclick="refreshVault()">Refresh</button>
         </div>
-        <div id=characters></div>
-        <h3>Current selection: <span id="select">none</span></h3>
+        <div id=characters><h3 id="current">Current selection: <span id="select">none</span></h3></div>
         <div id="alert"></div>
         <div id="status"></div>
-        <div id="characterEmblems">
-
-        </div>
         <div id="vault">
             <div id="Kinetic">
                 <div class="equip"></div>
