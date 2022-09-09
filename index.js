@@ -4,6 +4,7 @@ const https = require("https");
 const fs = require("fs");
 const qs = require('qs');
 const path = require('path');
+const favicon = require('serve-favicon');
 
 const key = fs.readFileSync('./key.pem');
 const cert = fs.readFileSync('./cert.pem');
@@ -56,6 +57,7 @@ manifestPromise().then((res) => {
   console.log("Item manifest downloaded!");
   console.log("Version: "+res);
   const app = express();
+  app.use(favicon(path.join(__dirname,'favicon.ico')));
   const server = https.createServer({ key: key, cert: cert }, app);
 
   //transfer, POST
@@ -320,6 +322,11 @@ function getVault(id) {
                 type = "Class";
             }
             var name = obj.displayProperties.name;
+            itemHash = data.items[i].overrideStyleItemHash;
+            if(typeof itemHash != "undefined"){
+              itemHash = data.items[i].itemHash;
+              obj = JSON.parse(getIcon(itemHash));
+            }
             var icon = "https://www.bungie.net" + obj.displayProperties.icon;
             var screenshot = "https://www.bungie.net" + obj.screenshot;
             var push = {[itemInstanceId]: { "itemHash": itemHash, "name": name, "icon": icon, "screenshot": screenshot, "type": type, "location": "vault", "rarity":rarity } };
