@@ -108,20 +108,29 @@ manifestPromise().then((res) => {
     res.statusMessage = error.response.data.Message;
     res.status(500).end();
     console.log(error.response.data.Message);
-  }).then(function() {
-    var profile = req.query.profile;
-    var number = req.query.number;
-    data[2] = data[2]=="true";
-    var vault = JSON.parse(fs.readFileSync("./"+profile+".vault.json"));
-    if(!data[2]){
-      vault.data[number][data[3]].location = data[4];
-    }else{
-      vault.data[number][data[3]].location = "vault";
-    }
-    
-    fs.writeFileSync(profile+".vault.json", JSON.stringify(vault));
-  });
+  })
 });
+
+//update vault file
+app.get("/updatevault", (req,res)=>{
+  var vault = JSON.parse(fs.readFileSync("./"+profile+".vault.json"));
+
+  var location = req.query.location;
+  var profile = req.query.profile;
+  var number = req.query.number;
+
+  var instance = vault.data[number].keys[0];
+
+  
+  // console.log(vault.data[number]);
+  //   if(!location){
+  //     vault.data[number][instance].location = character;
+  //   }else{
+  //     vault.data[number][instance].location = "vault";
+  //   }
+  //   console.log(vault.data[number]);
+  //   fs.writeFileSync(profile+".vault.json", JSON.stringify(vault));
+})
 
 //login page
 app.get("/redirect", (req, res) => {
@@ -322,10 +331,9 @@ function getVault(id) {
                 type = "Class";
             }
             var name = obj.displayProperties.name;
-            itemHash = data.items[i].overrideStyleItemHash;
-            if(typeof itemHash != "undefined"){
-              itemHash = data.items[i].itemHash;
-              obj = JSON.parse(getIcon(itemHash));
+            var override = data.items[i].overrideStyleItemHash;
+            if(override != undefined){
+              obj = JSON.parse(getIcon(override));
             }
             var icon = "https://www.bungie.net" + obj.displayProperties.icon;
             var screenshot = "https://www.bungie.net" + obj.screenshot;
@@ -381,10 +389,14 @@ function getVault(id) {
                     case 1585787867:
                       type = "Class";
                   }
+                  var override = data.items[i].overrideStyleItemHash;
                   var name = obj.displayProperties.name;
+                  if(override != undefined){
+                    obj = JSON.parse(getIcon(override));
+                  }
                   var icon = "https://www.bungie.net" + obj.displayProperties.icon;
                   var screenshot = "https://www.bungie.net" + obj.screenshot;
-                  var push = {[itemInstanceId]: { "itemHash": itemHash, "name": name, "icon": icon, "screenshot": screenshot, "type": type, "location": key,"rarity":rarity} };
+                  var push = {[itemInstanceId]: { "itemHash": itemHash, "name": name, "icon": icon, "screenshot": screenshot, "type": type, "location": key, "rarity":rarity } };
                   equipables.push(push);
                  }
               }

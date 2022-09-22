@@ -98,7 +98,10 @@
                         add.setAttribute("src",icon);
 
                         let button = document.createElement('button');
-                        button.setAttribute("onclick",`transferItem( "${vault[i][key].itemHash}","${1}","${!location}","${key}","${3}","${currentLocation}","${i}","${profile}","${vault[i][key].name}" )`);
+                        var h = vault[i][key].itemHash;
+                        console.log(vault[i][key]);
+                        button.setAttribute("onclick",`transferItem( "${h}","${1}","${!location}","${key}","${3}","${currentLocation}","${i}","${profile}","${vault[i][key].name}" )`);
+                        console.log(button.attributes);
                         button.appendChild(add);
 
                         let div = document.createElement('div');
@@ -151,20 +154,20 @@
                         throw new Error("NETWORK RESPONSE ERROR");
                     }}).then(data => {
                         var temp = document.getElementsByClassName("inventory");
-                for(var i = 0; i < temp.length; i++){
-                    temp[i].innerHTML = "";
-                }
-                temp = document.getElementsByClassName("equip");
-                for(var i = 0; i < temp.length; i++){
-                    var children = temp[i].children;
-                    for(var j = 0; j < children.length; j++){
-                        while(children[j].lastChild){
-                            children[j].removeChild(children[j].lastChild);
+                        for(var i = 0; i < temp.length; i++){
+                            temp[i].innerHTML = "";
                         }
-                    }
-                }
+                        temp = document.getElementsByClassName("equip");
+                        for(var i = 0; i < temp.length; i++){
+                            var children = temp[i].children;
+                            for(var j = 0; j < children.length; j++){
+                                while(children[j].lastChild){
+                                    children[j].removeChild(children[j].lastChild);
+                                }
+                            }
+                        }
                         var vault = JSON.parse(data);
-                        refresh(vault);
+                        refresh(vault, d2id);
                     });
                 });
             });
@@ -193,7 +196,7 @@
                     if(vault){
                         charToMove = currentLocation;
                     }
-                    fetch("/moveitem?hash="+hash+"&stack="+stack+"&vault="+vault+"&instance="+instance+"&currentChar="+charToMove+"&membership="+membership+"&id="+value+"&profile="+profile+"&number="+number)
+                    fetch("/moveitem?hash="+hash+"&stack="+stack+"&vault="+vault+"&instance="+instance+"&currentChar="+charToMove+"&membership="+membership+"&id="+value)
                     .then(async (response) => {
                         if(response.ok){
                             console.log("Success: transfer item");
@@ -216,7 +219,10 @@
                             }else{
                                 grandparent.parentElement.lastChild.previousSibling.appendChild(temp);
                             }
+
+                            // fetch("/updatevault?number="+number+"")
                             
+                            //display message
                             document.getElementById(random).innerHTML = "Successful transfer!"
                             await new Promise(r => setTimeout(r, 2500));
                             document.getElementById(random).remove();
