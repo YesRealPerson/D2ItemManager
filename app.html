@@ -174,10 +174,11 @@
             }
 
             async function transferItem(hash, stack, vault, instance, membership, currentLocation, number, profile, name){
-                vault = vault =="true";
+                if(document.getElementById(instance+"status") == null){
                 var status = document.getElementById("status");
+                vault = vault =="true";
                 var message = document.createElement("p");
-                var random = Math.random();
+                var random = instance+"status";
                 message.innerHTML = "Attempting transfer of "+name;
                 message.setAttribute("id", random);
                 message.style.border = "1px solid white"
@@ -200,6 +201,7 @@
                     .then(async (response) => {
                         if(response.ok){
                             console.log("Success: transfer item");
+                            console.log(vault);
                             if(vault){
                                 vault = "false";
                                 charLocation = "vault";
@@ -220,7 +222,7 @@
                                 grandparent.parentElement.lastChild.previousSibling.appendChild(temp);
                             }
 
-                            // fetch("/updatevault?number="+number+"")
+                            fetch("/updatevault?number="+number+"&profile="+d2id+"&vault="+vault+"&location="+charToMove);
                             
                             //display message
                             document.getElementById(random).innerHTML = "Successful transfer!"
@@ -235,6 +237,7 @@
                         }
                     });
                 }
+            }
             }
         </script>
         <style>

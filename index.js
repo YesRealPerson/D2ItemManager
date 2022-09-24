@@ -113,23 +113,23 @@ manifestPromise().then((res) => {
 
 //update vault file
 app.get("/updatevault", (req,res)=>{
-  var vault = JSON.parse(fs.readFileSync("./"+profile+".vault.json"));
-
-  var location = req.query.location;
   var profile = req.query.profile;
+  var inventory = JSON.parse(fs.readFileSync("./"+profile+".vault.json"));
+
+  var vault = req.query.vault;
+  vault = vault == "true";
   var number = req.query.number;
+  var location = req.query.location
 
-  var instance = vault.data[number].keys[0];
+  var instance = Object.keys(inventory.data[number]);
+  instance = instance[0];
 
-  
-  // console.log(vault.data[number]);
-  //   if(!location){
-  //     vault.data[number][instance].location = character;
-  //   }else{
-  //     vault.data[number][instance].location = "vault";
-  //   }
-  //   console.log(vault.data[number]);
-  //   fs.writeFileSync(profile+".vault.json", JSON.stringify(vault));
+  inventory.data[number][instance].location = location;
+  if(!vault){
+    inventory.data[number][instance].location = "vault";
+  }
+
+  fs.writeFileSync(profile+".vault.json", JSON.stringify(inventory));
 })
 
 //login page
