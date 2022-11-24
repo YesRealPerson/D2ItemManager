@@ -123,7 +123,11 @@ const refreshVault = () => {
                 div.appendChild(button);
                 div.appendChild(caption);
                 div.appendChild(hover);
-                document.getElementById(location).appendChild(div);
+                try{
+                    document.getElementById(location).appendChild(div);
+                }catch{
+                    console.log(location);
+                }
                 i++;
             })
             if (document.getElementById("refreshMessage") != null) {
