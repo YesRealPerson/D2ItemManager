@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en-US">
+    <head>
+        <title>Loadout Manager</title>
+        <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+        <script src="functions.js" defer></script>
+        <script src="app.js" defer></script>
+        <link rel="stylesheet" href="app.css">
+    </head>
+    <body>
+        <div id="top">
+            <h1>Welcome, <span id="name"></span></h1>
+            <button class="selector" id="refresh" onclick="internalVaultRefresh()">Refresh</button>
+        </div>
+        <div id=characters><h3 id="current">Current selection: <span id="select">none</span></h3></div>
+        <div id="alert"></div>
+        <div id="status"></div>
+        <div id="vault">
+            <div id="Kinetic">
+                <div class="equip"></div>
+                <div class="inventory" id="VaultKinetic"></div>
+            </div>
+            <div id="Energy">
+                <div class="equip"></div>
+                <div class="inventory" id="VaultEnergy"></div>
+            </div>
+            <div id="Power">
+                <div class="equip"></div>
+                <div class="inventory" id="VaultPower"></div>
+            </div>
+            <div id="Helmet">
+                <div class="equip"></div>
+                <div class="inventory" id="VaultHelmet"></div>
+            </div>
+            <div id="Gauntlets">
+                <div class="equip"></div>
+                <div class="inventory" id="VaultGauntlets"></div>
+            </div>
+            <div id="Chest">
+                <div class="equip"></div>
+                <div class="inventory" id="VaultChest"></div>
+            </div>
+            <div id="Legs">
+                <div class="equip"></div>
+                <div class="inventory" id="VaultLegs"></div>
+            </div>
+            <div id="Class">
+                <div class="equip"></div>
+                <div class="inventory" id="VaultClass"></div>
+            </div>
+        </div>
+    </body>
+</html>
