@@ -11,8 +11,8 @@
         <div id="top">
             <h1>Welcome, <span id="name"></span></h1>
             <button class="selector" id="refresh" onclick="internalVaultRefresh()">Refresh</button>
+            <div id=characters><h3 id="current">Current selection: <span id="select">none</span></h3></div>
         </div>
-        <div id=characters><h3 id="current">Current selection: <span id="select">none</span></h3></div>
         <div id="alert"></div>
         <div id="status"></div>
         <div id="vault">
@@ -40,17 +40,32 @@
                 <div class="equip"></div>
                 <div class="inventory" id="VaultChest"></div>
             </div>
-            <div id="Legs">
+            <div id="Leg">
                 <div class="equip"></div>
-                <div class="inventory" id="VaultLegs"></div>
+                <div class="inventory" id="VaultLeg"></div>
             </div>
             <div id="Class">
                 <div class="equip"></div>
                 <div class="inventory" id="VaultClass"></div>
             </div>
-            <div id ="Unknown">
+            <div id ="Ghost">
                 <div class="equip"></div>
-                <div class="inventory" id="VaultUnknown"></div>
+                <div class="inventory" id="VaultGhost"></div>
+            </div>
+            <div id ="Ships">
+                <div class="equip"></div>
+                <div class="inventory" id="VaultShips"></div>
+            </div>
+            <div id ="Vehicle">
+                <div class="equip"></div>
+                <div class="inventory" id="VaultVehicle"></div>
+            </div>
+            <h2>
+                Non-transferable Items
+            </h2>
+            <div id ="Emblems">
+                <div class="equip"></div>
+                <div class="inventory" id="VaultEmblems"></div>
             </div>
         </div>
     </body>

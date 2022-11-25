@@ -4,10 +4,15 @@
 #Helmet,
 #Gauntlets,
 #Chest,
-#Legs,
+#Leg,
+#Ghost,
+#Ships,
+#Emblems,
+#Vehicle,
 #Class {
     display: grid;
     grid-template-columns: 1000px auto;
+    margin-bottom: 100px;
 }
 
 .equip {
@@ -62,12 +67,16 @@ button {
     padding: 0px;
     border-width: 0px;
     border: 0px;
-    background-color: #181a1b;
+    background-color: rgba(255, 0, 0, 0);
 }
 
 .hoverwrap {
     float: left;
+    margin: 0px;
+    padding: 0px;
     transform: scale(100%);
+    width: 100px;
+    height:100px;
 }
 
 .hoverwrap img {
@@ -140,6 +149,13 @@ button {
 
 #top {
     display: grid;
+    position: fixed;
+    z-index: 10;
+    background-color: rgba(0, 0, 0, 0.5);
+    left:0;
+    top:0;
+    padding-top: 25px;
+    padding-bottom:50px;
     grid-template-columns: 9fr 1fr;
 }
 
@@ -162,4 +178,12 @@ button {
     padding-right: 20px;
     padding-top: 15px;
     background-color: rgba(0, 0, 0, 0);
+}
+
+#vault{
+    padding-top: 250px;
+}
+.item{
+    width: 100px;
+    height:100px;
 }

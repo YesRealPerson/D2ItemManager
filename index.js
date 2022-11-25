@@ -5,7 +5,6 @@ const https = require('https');
 const fs = require('fs');
 const qs = require('qs');
 const path = require('path');
-const { getSystemErrorName } = require('util');
 
 const key = fs.readFileSync('./key.pem');
 const cert = fs.readFileSync('./cert.pem');
@@ -14,53 +13,66 @@ require('dotenv').config()
 const bAuth = process.env.BASIC;
 const XAPIKey = process.env.XAPI;
 
-//retrieve itemManifest
-let manifestPromise = function getManifest() {
+//get manifest
+const getJSON = (url) => {
+  return new Promise((resolve, reject) => {
+    var config = {
+      method: "get",
+      url: url
+    }
+
+    axios(config)
+      .then(response => {
+        console.log(url);
+        resolve(response.data);
+      })
+      .catch((err) => reject(err));
+  });
+}
+
+//retrieve item and bucket manifest
+const manifestPromise = async () => {
   return new Promise((resolve, reject) => {
     var config = {
       method: 'get',
       url: 'https://www.bungie.net/platform/destiny2/manifest',
+      headers: {
+        'X-API-Key': XAPIKey
+      }
     };
 
     axios(config)
-      .then(function (response) {
-        var data = JSON.stringify(response.data);
-        var obj = JSON.parse(data);
-        var url = obj.Response.jsonWorldComponentContentPaths.en.DestinyInventoryItemDefinition;
-        var filename = url.split("/").at(-1);
-        //check if manifest up-to-date
-        if (!fs.existsSync('./public/' + filename)) {
-          var c = {
-            method: 'get',
-            url: 'https://www.bungie.net' + url,
-          };
-          axios(c)
-            .then(function (response) {
-              var manifest = JSON.stringify(response.data);
-              //write manifest
-              console.log("downloading manifest");
-              // console.log(__dirname+"/public/"+filename);
-              fs.writeFileSync(__dirname + "/public/" + filename, manifest);
-              //Say success
-              console.log("downloaded manifest");
-              resolve(filename);
-            })
-        }
-        else {
-          resolve(filename);
-        }
+      .then(async (response) => {
+        var data = response.data.Response.jsonWorldComponentContentPaths.en;
+        var toDownload = ['https://www.bungie.net' + data.DestinyInventoryItemDefinition, 'https://www.bungie.net' + data.DestinyInventoryBucketDefinition, 'https://www.bungie.net' + data.DestinyStatDefinition];
+        var manifests = [];
+        manifests.push(
+          await getJSON(toDownload[0])
+        );
+        console.log("Inventory downloaded");
+        manifests.push(
+          await getJSON(toDownload[1])
+        );
+        console.log("Bucket downloaded");
+        manifests.push(
+          await getJSON(toDownload[2])
+        );
+        console.log("Stat downloaded");
+        resolve(manifests);
       })
-      .catch(function (error) {
-        reject("Failed to get manifest");
+      .catch((error) => {
+        reject(error);
       });
   });
 }
 
 //manifest download successful
-manifestPromise().then((res) => {
-  //read downloaded file
-  var itemManifest = JSON.parse(fs.readFileSync('./public/' + res));
-  console.log("Manifest version: " + res);
+manifestPromise().then(async (res) => {
+  //get manifest files
+  var itemManifest = res[0];
+  var bucketManifest = res[1];
+  var statManifest = res[2];
+
   const app = express();
   app.use(express.static(path.join(__dirname, 'public')));
   const server = https.createServer({ key: key, cert: cert }, app);
@@ -77,7 +89,11 @@ manifestPromise().then((res) => {
 
   //refresh vault (calls getVault)
   app.get("/refresh", async (req, res) => {
-    const x = await getVault(req.query.d2id, req.query.bungieid);
+    const x = await getVault(req.query.d2id, req.query.bungieid)
+      .catch(err => {
+        res.status(500).send(err);
+        throw new Error(err);
+      });
     res.status(200).send(x);
   });
 
@@ -102,7 +118,7 @@ manifestPromise().then((res) => {
     };
 
     //request
-    axios(config).then(function (response) {
+    axios(config).then((response) => {
       //get time of request 
       //oauth code decays after 60 minutes (3600 seconds)
       //refresh code decays after 90 days (7776000 seconds) 
@@ -124,16 +140,16 @@ manifestPromise().then((res) => {
       //get Destiny ID
       getName(name)
         //get vault and characters
-        .then(function () {
+        .then(() => {
           var destinyID = JSON.parse(fs.readFileSync("./public/users/" + name + ".profile.json")).membershipId;
           getVault(destinyID, name);
           getCharacters(destinyID, name);
         })
-        .then(function () {
+        .then(() => {
           res.redirect('/app?user=' + name);
         })
     })
-      .catch(function (error) {
+      .catch((error) => {
         reject(error);
       });
     //end of request
@@ -152,9 +168,9 @@ manifestPromise().then((res) => {
         })
         .catch(error => {
           var message = "";
-          try{
+          try {
             message = error.response.data.Message;
-          }catch {
+          } catch {
             message = "You may need to relogin";
           }
           res.status(400).send(message);
@@ -162,14 +178,9 @@ manifestPromise().then((res) => {
     }
   });
 
-  //gets general information from item hash
-  const lookup = (id) => {
-    return itemManifest[id];
-  }
-
   //gets Destiny ID and username
   const getName = (bungie) => {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
       var config = {
         method: 'get',
         url: 'https://bungie.net/platform/Destiny2/254/Profile/' + bungie + '/LinkedProfiles',
@@ -178,7 +189,7 @@ manifestPromise().then((res) => {
         }
       };
 
-      axios(config).then(function (response) {
+      axios(config).then((response) => {
         var data = JSON.stringify({
           "membershipId": response.data.Response.profiles[0].membershipId,
           "name": response.data.Response.profiles[0].displayName
@@ -186,169 +197,320 @@ manifestPromise().then((res) => {
         fs.writeFileSync("./public/users/" + bungie + '.profile.json', data);
         resolve(data);
       })
-        .catch(function (error) {
+        .catch((error) => {
           reject(error);
         });
     })
   }
 
+  //gets general information from item hash
+  //type: 0 item and perk definition
+  //type: 1 bucket definition
+  //type: 2 stat definition
+  const lookup = (id, type) => {
+    return new Promise((resolve, reject) => {
+      if (type == 0) {
+        var item = itemManifest[id];
+        if (item != undefined) {
+          resolve(item);
+        } else {
+          reject("Invalid id parameter");
+        }
+      }
+      else if (type == 1) {
+        var bucket = bucketManifest[id];
+        if (bucket != undefined) {
+          resolve(bucket);
+        } else {
+          reject("Invalid id parameter");
+        }
+      }
+      else if (type == 2) {
+        var stat = statManifest[id];
+        if (stat != undefined) {
+          resolve(stat);
+        } else {
+          reject("Invalid id parameter");
+        }
+      } else {
+        reject("Invalid type parameter");
+      }
+    });
+
+  }
+
+  //rewrites item data into the way I want it :)
+  const compileVaultData = async (item, location, stats, perks) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        //get item instance id
+        var itemInstanceId = item.itemInstanceId;
+        //get item hash
+        var itemHash = item.itemHash;
+        //get item info
+        var info = await lookup(itemHash, 0)
+          .catch(err => {
+            reject("compileVaultData 1" + err);
+          });
+        //get rarity and type
+        var rarity = info.itemTypeAndTierDisplayName;
+        //get item type
+        var type = info.inventory.bucketTypeHash;
+        //change item type from hash to string
+        type = await lookup(type, 1)
+          .catch(err => {
+            reject("compileVaultData 2" + err);
+          });
+        type = type.displayProperties.name.split(" ")[0];
+        //get name of item
+        var name = info.displayProperties.name;
+        //get applied ornament
+        var override = item.overrideStyleItemHash;
+        //if ornament exists
+        if (override != undefined) {
+          //set obj to ornament
+          info = await lookup(override, 0)
+            .catch(err => {
+              reject("compileVaultData 3" + err);
+            });
+        }
+        //set url of icon of item
+        var icon = "https://www.bungie.net" + info.displayProperties.icon;
+        //set url of screenshot of item
+        var screenshot = "https://www.bungie.net" + info.screenshot;
+        //get perks
+        //create JSON object for item
+        item = {
+          [itemInstanceId]: {
+            "itemHash": itemHash,
+            "name": name,
+            "icon": icon,
+            "screenshot": screenshot,
+            "type": type,
+            "location": location,
+            "rarity": rarity,
+            "stats": stats,
+            "perks": perks
+          }
+        }
+        resolve(item);
+      } catch (error) {
+        reject("compileVaultData " + error);
+      }
+    });
+  }
+
+  //gets perks for item
+  const getItemPerks = async (id, manifest) => {
+    return new Promise((resolve, reject) => {
+      try {
+        var perks = manifest[id].sockets;
+        var perkList = [];
+        perks.forEach(async perk => {
+          if (perk.isEnabled && perk.isVisible) {
+            var perkInfo = (
+              await lookup(perk.plugHash, 0)
+                .catch(err => reject("getItemsPerks error: " + err)
+                )).displayProperties;
+            perk = {
+              "name": perkInfo.name,
+              "icon": perkInfo.icon,
+              "description": perkInfo.description
+            }
+            perkList.push(perk);
+          }
+        });
+        resolve(perkList);
+      } catch (err) {
+        reject("getItemsPerks error: " + err);
+      }
+    });
+  }
+
+  //gets stats for item
+  const getItemStats = async (id, manifest) => {
+    return new Promise((resolve, reject) => {
+      try {
+        var stats = manifest[id].stats
+        var keys = Object.keys(stats);
+        var end = [];
+        keys.forEach(async stat => {
+          var statInfo = await lookup(stat, 2)
+            .catch(err => reject("getItemStats error: " + err));
+          var statFull = {
+            [statInfo.displayProperties.name]: {
+              "icon": statInfo.displayProperties.icon,
+              "value": stats[stat].value
+            }
+          }
+          end.push(statFull);
+        });
+        resolve(end);
+      } catch (err) {
+        reject("getItemStats error: " + err);
+      }
+    });
+  }
+
   //gets vault for player
   const getVault = async (d2id, bungieid) => {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       console.log("Get Vault for " + bungieid);
+
       var config = {
         method: 'get',
-        url: 'https://www.bungie.net/Platform/Destiny2/3/profile/' + d2id + '/?components=102',
+        url: 'https://www.bungie.net/Platform/Destiny2/3/profile/' + d2id + '/?components=102,201,304,305',
         headers: {
           'X-API-Key': XAPIKey
         }
-      };
+      }
 
       axios(config)
-        .then(function (response) {
-          //get profile inventory from response
-          var data = response.data.Response.profileInventory.data;
-          //items array
-          var equipables = [];
-          //loop through all items in data
-          for (var i = 0; i < data.items.length; i++) {
-            //get bucket hash
-            var bucketHash = data.items[i].bucketHash;
-            //check if item is of equipable item type (weapon/armor)
-            if (bucketHash === 138197802) {
-              //get item instance id (specific i.e. MY fatebringer)
-              var itemInstanceId = data.items[i].itemInstanceId;
-              //get item hash (general item i.e. fatebringer the gun)
-              var itemHash = data.items[i].itemHash;
-              //get item info
-              var obj = lookup(itemHash);
-              //get rarity and type of item (i.e.  Legendary Leg Armor)
-              var rarity = obj.itemTypeAndTierDisplayName;
-              //get item type
-              var type = obj.inventory.bucketTypeHash;
-              //change item type from hash to string
-              switch (type) {
-                case 1498876634:
-                  type = "Kinetic";
-                  break;
-                case 2465295065:
-                  type = "Energy";
-                  break;
-                case 953998645:
-                  type = "Power";
-                  break;
-                case 3448274439:
-                  type = "Helmet";
-                  break;
-                case 3551918588:
-                  type = "Gauntlets";
-                  break;
-                case 14239492:
-                  type = "Chest";
-                  break;
-                case 20886954:
-                  type = "Legs";
-                  break;
-                case 1585787867:
-                  type = "Class";
-                default:
-                  type = "Unknown";
-              }
-              //get name of object (i.e Crest of Alpha Lupi)
-              var name = obj.displayProperties.name;
-              //get applied ornament
-              var override = data.items[i].overrideStyleItemHash;
-              //if ornament exists
-              if (override != undefined) {
-                //set obj to ornament
-                obj = (lookup(override));
-              }
-              //set url of icon of item
-              var icon = "https://www.bungie.net" + obj.displayProperties.icon;
-              //set url of screenshot of item
-              var screenshot = "https://www.bungie.net" + obj.screenshot;
-              //create JSON object for item
-              var push = { [itemInstanceId]: { "itemHash": itemHash, "name": name, "icon": icon, "screenshot": screenshot, "type": type, "location": "Vault", "rarity": rarity } };
-              //push to items array
-              equipables.push(push);
+        .then(async (response) => {
+          //main response object
+          var data = response.data.Response;
+          //get vault data
+          var vault = data.profileInventory.data.items;
+          //get character inventories
+          var characterVaults = data.characterInventories.data;
+          //characters
+          var characters = Object.keys(characterVaults);
+
+          //get instanced item stats
+          var instancedStats = data.itemComponents.stats.data;
+          //get instanced item perks
+          var instancedPerks = data.itemComponents.sockets.data;
+
+          //variable to push all data into
+          var totalVault = [];
+
+          //FORMAT DATA
+
+          //loop through vault
+          for (i in vault) {
+            var item = vault[i];
+            var instanceId = item.itemInstanceId;
+            if (instanceId != undefined && item.lockable && item.bucketHash != 215593132) {
+              var itemStats = await getItemStats(instanceId, instancedStats)
+                .catch(err => {
+                  console.log("No stats for: " + err);
+                });
+              var itemPerks = await getItemPerks(instanceId, instancedPerks)
+                .catch(err => {
+                  console.log("No stats for: " + err);
+                });
+
+              var itemInfo = await compileVaultData(item, "Vault", itemStats, itemPerks)
+                .catch(err => {
+                  console.log("Vault compilation error: " + err);
+                });
+
+              totalVault.push(itemInfo);
             }
           }
-          //get player inventory
-          var config = {
-            method: 'get',
-            url: 'https://www.bungie.net/Platform/Destiny2/3/profile/' + d2id + '/?components=201',
-            headers: {
-              'X-API-Key': XAPIKey
-            }
-          };
 
-          axios(config)
-            .then(function (response) {
-              //get each character inventory
-              var charInvens = response.data.Response.characterInventories.data;
-              //loop through each inventory
-              for (var key in charInvens) {
-                //get individual inventory
-                data = charInvens[key];
-                //loop through all items in inventory
-                for (var i = 0; i < data.items.length; i++) {
-                  //get bucket hash
-                  var bucketHash = data.items[i].bucketHash;
-                  //check if item is armor or weapon
-                  var bucketTypes = [1498876634, 2465295065, 953998645, 3448274439, 3551918588, 14239492, 20886954, 1585787867]
-                  if (bucketTypes.includes(bucketHash)) {
-                    var itemInstanceId = data.items[i].itemInstanceId;
-                    var itemHash = data.items[i].itemHash;
-                    var obj = (lookup(itemHash));
-                    var rarity = obj.itemTypeAndTierDisplayName;
-                    var type = obj.inventory.bucketTypeHash;
-                    switch (type) {
-                      case 1498876634:
-                        type = "Kinetic";
-                        break;
-                      case 2465295065:
-                        type = "Energy";
-                        break;
-                      case 953998645:
-                        type = "Power";
-                        break;
-                      case 3448274439:
-                        type = "Helmet";
-                        break;
-                      case 3551918588:
-                        type = "Gauntlets";
-                        break;
-                      case 14239492:
-                        type = "Chest";
-                        break;
-                      case 20886954:
-                        type = "Legs";
-                        break;
-                      case 1585787867:
-                        type = "Class";
-                    }
-                    var override = data.items[i].overrideStyleItemHash;
-                    var name = obj.displayProperties.name;
-                    if (override != undefined) {
-                      obj = (lookup(override));
-                    }
-                    var icon = "https://www.bungie.net" + obj.displayProperties.icon;
-                    var screenshot = "https://www.bungie.net" + obj.screenshot;
-                    var push = { [itemInstanceId]: { "itemHash": itemHash, "name": name, "icon": icon, "screenshot": screenshot, "type": type, "location": key, "rarity": rarity } };
-                    equipables.push(push);
-                  }
-                }
+          var currentChar = characters[0];
+          vault = characterVaults[currentChar].items;
+
+          for (i in vault) {
+            var item = vault[i];
+            var instanceId = item.itemInstanceId;
+            if (instanceId != undefined && item.lockable && item.bucketHash != 215593132) {
+              itemStats = [];
+              itemPerks = [];
+
+              itemStats = await getItemStats(instanceId, instancedStats)
+                .catch(err => {
+                  console.log("No stats for: " + instanceId + " " + err);
+                });
+              itemPerks = await getItemPerks(instanceId, instancedPerks)
+                .catch(err => {
+                  console.log("No perks for: " + instanceId + " " + err);
+                });
+
+              var itemInfo = await compileVaultData(item, currentChar, itemStats, itemPerks)
+                .catch(err => {
+                  console.log("Vault compilation error: " + instanceId + " " + err);
+                });
+
+              totalVault.push(itemInfo);
+            }
+          }
+
+          try {
+            currentChar = characters[1];
+            vault = characterVaults[currentChar].items;
+
+            for (i in vault) {
+              var item = vault[i];
+              var instanceId = item.itemInstanceId;
+              if (instanceId != undefined && item.lockable && item.bucketHash != 215593132) {
+                itemStats = [];
+                itemPerks = [];
+
+                itemStats = await getItemStats(instanceId, instancedStats)
+                  .catch(err => {
+                    console.log("No stats for: " + instanceId + " " + err);
+                  });
+                itemPerks = await getItemPerks(instanceId, instancedPerks)
+                  .catch(err => {
+                    console.log("No perks for: " + instanceId + " " + err);
+                  });
+
+                var itemInfo = await compileVaultData(item, currentChar, itemStats, itemPerks)
+                  .catch(err => {
+                    console.log("Vault compilation error: " + instanceId + " " + err);
+                  });
+
+                totalVault.push(itemInfo);
               }
-              var vault = { "data": equipables };
-              fs.writeFile("./public/users/" + bungieid + '.vault.json', JSON.stringify(vault), (err) => {
-                if (err) reject("Error: " + err);
-                else resolve(vault);
-              })
-            });
+            }
+          } catch {
+            console.log("Second character DNE");
+          }
+
+          try {
+            currentChar = characters[2];
+            vault = characterVaults[currentChar].items;
+
+            for (i in vault) {
+              var item = vault[i];
+              var instanceId = item.itemInstanceId;
+              if (instanceId != undefined && item.lockable && item.bucketHash != 215593132) {
+                itemStats = [];
+                itemPerks = [];
+
+                itemStats = await getItemStats(instanceId, instancedStats)
+                  .catch(err => {
+                    console.log("No stats for: " + instanceId + " " + err);
+                  });
+                itemPerks = await getItemPerks(instanceId, instancedPerks)
+                  .catch(err => {
+                    console.log("No perks for: " + instanceId + " " + err);
+                  });
+
+                var itemInfo = await compileVaultData(item, currentChar, itemStats, itemPerks)
+                  .catch(err => {
+                    console.log("Vault compilation error: " + instanceId + " " + err);
+                  });
+
+                totalVault.push(itemInfo);
+              }
+            }
+          } catch {
+            console.log("Third character DNE");
+          }
+
+          vault = { "data": totalVault };
+          fs.writeFile("./public/users/" + bungieid + ".vault.json", JSON.stringify(vault), err => {
+            if (err) reject("Error: " + err);
+            else resolve(vault);
+          });
+
           //TODO: get equipped items component 205
           //Maybe not idk
         })
-        .catch(function (error) {
+        .catch((error) => {
           console.log(error);
           reject("Error: " + error);
         });
@@ -368,7 +530,7 @@ manifestPromise().then((res) => {
     };
 
     axios(config)
-      .then(function (response) {
+      .then((response) => {
         //read data JSON
         var data = response.data;
         //read current profile data for ID
@@ -390,8 +552,9 @@ manifestPromise().then((res) => {
         //write new profile JSON to disk
         fs.writeFileSync("./public/users/" + bungieid + '.profile.json', JSON.stringify(endJSON));
       })
-      .catch(function (error) {
-        console.log("GetCharacters error")
+      .catch((error) => {
+        console.log(error)
+        console.log("@ getCharacters")
       });
   }
 
@@ -487,7 +650,7 @@ manifestPromise().then((res) => {
 
         await refreshToken(oauth)
           .then((response) => {
-            if(response != 200){
+            if (response != 200) {
               fs.readFile("./public/users/" + bungie + ".oauth.json", async (err, data) => {
                 if (err) {
                   console.log("reject pog");
@@ -496,7 +659,7 @@ manifestPromise().then((res) => {
                 oauth = JSON.parse(data);
               });
             }
-            console.log("Transfering Item for: "+bungie);
+            console.log("Transfering Item for: " + bungie);
             //transfer item
 
             var data = JSON.stringify({
@@ -520,10 +683,10 @@ manifestPromise().then((res) => {
             };
 
             axios(config)
-              .then(function (response) {
+              .then((response) => {
                 resolve(JSON.stringify(response.data));
               })
-              .catch(function (error) {
+              .catch((error) => {
                 reject(error);
               });
 

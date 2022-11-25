@@ -20,7 +20,7 @@ var vault;
 var oAuth;
 
 //Class list
-var classes = ["Warlock", "Hunter", "Titan"];
+var classes = ["Titan", "Hunter", "Warlock"];
 
 //Current character
 var currentChar = "";

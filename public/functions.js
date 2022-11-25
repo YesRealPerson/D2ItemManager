@@ -107,6 +107,7 @@ const refreshVault = () => {
 
                 let button = document.createElement('button');
                 button.setAttribute("onclick", 'transferItem(' + '"' + hash + '"' + ',"1",' + inVault + "," + '"' + instance + '"' + ',"3",' + '"' + name + '"' + ',"' + item.location + '"' + ')');
+                button.setAttribute("class", "item");
                 button.appendChild(add);
 
                 let div = document.createElement('div');
