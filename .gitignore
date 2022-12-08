@@ -1,4 +1,4 @@
 .env
 *.pem
 *.json
-test.js
+test*

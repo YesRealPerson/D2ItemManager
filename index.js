@@ -44,7 +44,7 @@ const manifestPromise = async () => {
     axios(config)
       .then(async (response) => {
         var data = response.data.Response.jsonWorldComponentContentPaths.en;
-        var toDownload = ['https://www.bungie.net' + data.DestinyInventoryItemDefinition, 'https://www.bungie.net' + data.DestinyInventoryBucketDefinition, 'https://www.bungie.net' + data.DestinyStatDefinition];
+        var toDownload = ['https://www.bungie.net' + data.DestinyInventoryItemDefinition, 'https://www.bungie.net' + data.DestinyInventoryBucketDefinition, 'https://www.bungie.net' + data.DestinyStatDefinition, 'https://www.bungie.net' + data.DestinySandboxPerkDefinition];
         var manifests = [];
         manifests.push(
           await getJSON(toDownload[0])
@@ -58,6 +58,10 @@ const manifestPromise = async () => {
           await getJSON(toDownload[2])
         );
         console.log("Stat downloaded");
+        manifests.push(
+          await getJSON(toDownload[3])
+        );
+        console.log("Perk downloaded");
         resolve(manifests);
       })
       .catch((error) => {
@@ -72,6 +76,7 @@ manifestPromise().then(async (res) => {
   var itemManifest = res[0];
   var bucketManifest = res[1];
   var statManifest = res[2];
+  var perkManifest = res[3];
 
   const app = express();
   app.use(express.static(path.join(__dirname, 'public')));
@@ -140,10 +145,10 @@ manifestPromise().then(async (res) => {
       //get Destiny ID
       getName(name)
         //get vault and characters
-        .then(() => {
+        .then(async () => {
           var destinyID = JSON.parse(fs.readFileSync("./public/users/" + name + ".profile.json")).membershipId;
-          getVault(destinyID, name);
-          getCharacters(destinyID, name);
+          await getVault(destinyID, name);
+          await getCharacters(destinyID, name);
         })
         .then(() => {
           res.redirect('/app?user=' + name);
@@ -204,9 +209,10 @@ manifestPromise().then(async (res) => {
   }
 
   //gets general information from item hash
-  //type: 0 item and perk definition
+  //type: 0 item definition
   //type: 1 bucket definition
   //type: 2 stat definition
+  //type: 3 perk definition
   const lookup = (id, type) => {
     return new Promise((resolve, reject) => {
       if (type == 0) {
@@ -232,6 +238,14 @@ manifestPromise().then(async (res) => {
         } else {
           reject("Invalid id parameter");
         }
+      }
+      else if (type == 3) {
+        var stat = perkManifest[id];
+        if (stat != undefined) {
+          resolve(stat);
+        } else {
+          reject("Invalid id parameter");
+        }
       } else {
         reject("Invalid type parameter");
       }
@@ -240,9 +254,18 @@ manifestPromise().then(async (res) => {
   }
 
   //rewrites item data into the way I want it :)
-  const compileVaultData = async (item, location, stats, perks) => {
+  const compileVaultData = async (item, location, stats, perks, general) => {
     return new Promise(async (resolve, reject) => {
       try {
+        try{
+          var light = general.lightLevel;
+        }catch(err){
+          var light = "N/A";
+        }try{
+          var damageType = general.damageType;
+        }catch(err){
+          var damageType = "N/A";
+        }
         //get item instance id
         var itemInstanceId = item.itemInstanceId;
         //get item hash
@@ -287,6 +310,8 @@ manifestPromise().then(async (res) => {
             "icon": icon,
             "screenshot": screenshot,
             "type": type,
+            "damageType": damageType,
+            "light": light,
             "location": location,
             "rarity": rarity,
             "stats": stats,
@@ -308,16 +333,20 @@ manifestPromise().then(async (res) => {
         var perkList = [];
         perks.forEach(async perk => {
           if (perk.isEnabled && perk.isVisible) {
-            var perkInfo = (
-              await lookup(perk.plugHash, 0)
-                .catch(err => reject("getItemsPerks error: " + err)
-                )).displayProperties;
-            perk = {
-              "name": perkInfo.name,
-              "icon": perkInfo.icon,
-              "description": perkInfo.description
+            try {
+              var perkInfo = (
+                await lookup(perk.plugHash, 0)
+                  .catch(err => reject("getItemsPerks error for +" + perk.plugHash + ": " + err)
+                  )).displayProperties;
+              perk = {
+                "name": perkInfo.name,
+                "icon": "https://bungie.net" + perkInfo.icon,
+                "description": perkInfo.description
+              }
+              perkList.push(perk);
+            } catch (err) {
+              console.log("getItemsPerks error: " + err);
             }
-            perkList.push(perk);
           }
         });
         resolve(perkList);
@@ -352,6 +381,43 @@ manifestPromise().then(async (res) => {
     });
   }
 
+  //gets general instanced item info
+  const getInstanceInfo = async (id, manifest) => {
+    return new Promise((resolve, reject) => {
+      var damageTypes = ["", "Kinetic", "Arc", "Solar", "Void", "", "Stasis"];
+      try {
+        var data = manifest[id];
+
+        try{
+          var damage = damageTypes[data.damageType];
+          if(damage == ""){
+            damage = "N/A";
+          }
+        }catch{
+          console.log("No damage type for "+id);
+          var damage = "N/A";
+        }
+        try{
+          var light = data.primaryStat.value;
+          if(light == ""){
+            light = "N/A";
+          }
+        }catch{
+          console.log("No light level for "+id);
+          var light = "N/A";
+        }
+
+        var infoObj = {
+          damageType: damage,
+          lightLevel: light
+        };
+        resolve(infoObj);
+      } catch (err) {
+        reject("getInstanceInfo error: " + err);
+      }
+    });
+  }
+
   //gets vault for player
   const getVault = async (d2id, bungieid) => {
     return new Promise(async (resolve, reject) => {
@@ -359,7 +425,7 @@ manifestPromise().then(async (res) => {
 
       var config = {
         method: 'get',
-        url: 'https://www.bungie.net/Platform/Destiny2/3/profile/' + d2id + '/?components=102,201,304,305',
+        url: 'https://www.bungie.net/Platform/Destiny2/3/profile/' + d2id + '/?components=102,201,300,304,305',
         headers: {
           'X-API-Key': XAPIKey
         }
@@ -380,6 +446,8 @@ manifestPromise().then(async (res) => {
           var instancedStats = data.itemComponents.stats.data;
           //get instanced item perks
           var instancedPerks = data.itemComponents.sockets.data;
+          //get instanced item general info
+          var instancedData = data.itemComponents.instances.data;
 
           //variable to push all data into
           var totalVault = [];
@@ -393,16 +461,21 @@ manifestPromise().then(async (res) => {
             if (instanceId != undefined && item.lockable && item.bucketHash != 215593132) {
               var itemStats = await getItemStats(instanceId, instancedStats)
                 .catch(err => {
-                  console.log("No stats for: " + err);
+                  console.log("No stats for: " + instanceId + " " + err);
                 });
               var itemPerks = await getItemPerks(instanceId, instancedPerks)
                 .catch(err => {
-                  console.log("No stats for: " + err);
+                  console.log("No stats for: " + instanceId + " " + err);
                 });
 
-              var itemInfo = await compileVaultData(item, "Vault", itemStats, itemPerks)
+              var itemGeneral = await getInstanceInfo(instanceId, instancedData)
                 .catch(err => {
-                  console.log("Vault compilation error: " + err);
+                  console.log("No light/damage type for: " + instanceId + " " + err);
+                });
+
+              var itemInfo = await compileVaultData(item, "Vault", itemStats, itemPerks, itemGeneral)
+                .catch(err => {
+                  console.log("Vault compilation error: " + instanceId + " " + err);
                 });
 
               totalVault.push(itemInfo);
@@ -418,6 +491,7 @@ manifestPromise().then(async (res) => {
             if (instanceId != undefined && item.lockable && item.bucketHash != 215593132) {
               itemStats = [];
               itemPerks = [];
+              itemGeneral = {};
 
               itemStats = await getItemStats(instanceId, instancedStats)
                 .catch(err => {
@@ -427,8 +501,13 @@ manifestPromise().then(async (res) => {
                 .catch(err => {
                   console.log("No perks for: " + instanceId + " " + err);
                 });
+              
+              itemGeneral = await getInstanceInfo(instanceId, instancedData)
+                .catch(err => {
+                  console.log("No light/damage type for: " + instanceId + " " + err);
+                });
 
-              var itemInfo = await compileVaultData(item, currentChar, itemStats, itemPerks)
+              var itemInfo = await compileVaultData(item, currentChar, itemStats, itemPerks, itemGeneral)
                 .catch(err => {
                   console.log("Vault compilation error: " + instanceId + " " + err);
                 });
@@ -456,8 +535,13 @@ manifestPromise().then(async (res) => {
                   .catch(err => {
                     console.log("No perks for: " + instanceId + " " + err);
                   });
+                  
+                itemGeneral = await getInstanceInfo(instanceId, instancedData)
+                  .catch(err => {
+                    console.log("No light/damage type for: " + instanceId + " " + err);
+                  });
 
-                var itemInfo = await compileVaultData(item, currentChar, itemStats, itemPerks)
+                var itemInfo = await compileVaultData(item, currentChar, itemStats, itemPerks, itemGeneral)
                   .catch(err => {
                     console.log("Vault compilation error: " + instanceId + " " + err);
                   });
@@ -489,7 +573,12 @@ manifestPromise().then(async (res) => {
                     console.log("No perks for: " + instanceId + " " + err);
                   });
 
-                var itemInfo = await compileVaultData(item, currentChar, itemStats, itemPerks)
+                itemGeneral = await getInstanceInfo(instanceId, instancedData)
+                  .catch(err => {
+                    console.log("No light/damage type for: " + instanceId + " " + err);
+                  });
+
+                var itemInfo = await compileVaultData(item, currentChar, itemStats, itemPerks, itemGeneral)
                   .catch(err => {
                     console.log("Vault compilation error: " + instanceId + " " + err);
                   });
@@ -520,42 +609,49 @@ manifestPromise().then(async (res) => {
 
   //gets associated characters for a player
   const getCharacters = (d2id, bungieid) => {
-    console.log("Get Characters for " + bungieid);
-    var config = {
-      method: 'get',
-      url: 'https://bungie.net/platform/Destiny2/3/Profile/' + d2id + '/?components=200',
-      headers: {
-        'X-API-Key': XAPIKey
-      }
-    };
+    return new Promise(async (resolve, reject) => {
+      console.log("Get Characters for " + bungieid);
+      var config = {
+        method: 'get',
+        url: 'https://bungie.net/platform/Destiny2/3/Profile/' + d2id + '/?components=200',
+        headers: {
+          'X-API-Key': XAPIKey
+        }
+      };
 
-    axios(config)
-      .then((response) => {
-        //read data JSON
-        var data = response.data;
-        //read current profile data for ID
-        var endJSON = JSON.parse(fs.readFileSync("./public/users/" + bungieid + '.profile.json'));
-        //get character array key
-        var chars = Object.keys(data.Response.characters.data);
-        //initialize character array
-        var charsArray = [];
-        //add character information to array
-        chars.forEach((char) => {
-          charsArray.push({
-            "classType": data.Response.characters.data[char].classType,
-            "charId": data.Response.characters.data[char].characterId,
-            "emblem": data.Response.characters.data[char].emblemBackgroundPath,
+      axios(config)
+        .then((response) => {
+          //read data JSON
+          var data = response.data;
+          //read current profile data for ID
+          var endJSON = JSON.parse(fs.readFileSync("./public/users/" + bungieid + '.profile.json'));
+          //get character array key
+          var chars = Object.keys(data.Response.characters.data);
+          //initialize character array
+          var charsArray = [];
+          //add character information to array
+          chars.forEach((char) => {
+            charsArray.push({
+              "classType": data.Response.characters.data[char].classType,
+              "charId": data.Response.characters.data[char].characterId,
+              "emblem": data.Response.characters.data[char].emblemBackgroundPath,
+            });
           });
+          //write character array to profile JSON
+          endJSON.classes = charsArray;
+          //write new profile JSON to disk
+          fs.writeFile("./public/users/" + bungieid + '.profile.json', JSON.stringify(endJSON), err => {
+            if (err) {
+              reject("GetCharacters Error "+error)
+            } else {
+              resolve("Success");
+            }
+          });
+        })
+        .catch((error) => {
+          reject("GetCharacters Error "+error);
         });
-        //write character array to profile JSON
-        endJSON.classes = charsArray;
-        //write new profile JSON to disk
-        fs.writeFileSync("./public/users/" + bungieid + '.profile.json', JSON.stringify(endJSON));
-      })
-      .catch((error) => {
-        console.log(error)
-        console.log("@ getCharacters")
-      });
+    });
   }
 
   //Checks and refreshes oauth
@@ -707,4 +803,3 @@ manifestPromise().then(async (res) => {
 }).catch((error) => {
   console.log(error);
 });
-

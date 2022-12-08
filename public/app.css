@@ -11,20 +11,19 @@
 #Vehicle,
 #Class {
     display: grid;
-    grid-template-columns: 1000px auto;
     margin-bottom: 100px;
 }
 
 .equip {
     grid-column: 1/2;
     display: grid;
-    grid-template-columns: 320px 320px 320px;
+    grid-template-columns: 160px 160px 160px;
     padding-right: 10px;
     max-width: 1000px;
 }
 
 .inventory {
-    min-width: 320px;
+    min-width: 160px;
     grid-column: 2/3;
 }
 
@@ -39,7 +38,6 @@ body {
     text-align: center;
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
 }
-
 h1,
 h3 {
     margin: 5px;
@@ -49,17 +47,24 @@ h3 {
     border: 1px solid white;
     color: white;
     background-color: rgba(0, 0, 0, 0);
-    margin: 5px;
-    margin-left: 0px;
     padding: 5px;
 }
 
-.classes{
+.classes {
     background-size: contain;
-    max-width: 320px;
-    height: 66px;
+    background-repeat: no-repeat;
+    width: 150px;
+    height: 33px;
     text-align: left;
     padding-left: 90px;
+}
+
+.charArea{
+    height: 100%;
+}
+
+.charInventory{
+    margin-right: 10px;
 }
 
 button {
@@ -76,24 +81,20 @@ button {
     padding: 0px;
     transform: scale(100%);
     width: 100px;
-    height:100px;
+    height: 100px;
 }
 
 .hoverwrap img {
-    height: 100px;
     width: 100%;
+    height: auto;
 }
 
 .hovercap {
     pointer-events: none;
-    font-size: 15px;
+    font-size: 0px;
     box-sizing: border-box;
     width: 100%;
     padding: 10px;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    background-color: rgba(0, 0, 0, 0.5);
     color: white;
 }
 
@@ -118,7 +119,7 @@ button {
 
 .message {
     border: 1px solid white;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0, 0, 0, 0.5);
     padding-top: 10px;
     padding-bottom: 10px;
     margin: 5px;
@@ -126,20 +127,23 @@ button {
 }
 
 #characters {
+    padding: 0px;
+    margin-left: 100px;
+    z-index: 100;
     display: grid;
-    grid-template-columns: 320px 320px 320px auto;
+    grid-template-columns: 160px 160px 160px auto;
 }
 
 #characters * {
     color: white;
     background-color: rgb(50, 50, 50);
-    font-size: 30px;
+    font-size: 15px;
 }
 
 #status {
     position: fixed;
     z-index: 10;
-    top: 50px;
+    top: 150px;
     right: 50px;
     opacity: 100;
     color: white;
@@ -148,27 +152,27 @@ button {
 }
 
 #top {
-    display: grid;
     position: fixed;
+    display: grid;
     z-index: 10;
-    background-color: rgba(25, 25, 25, 0.5);
-    left:0;
-    top:0;
+    width:100%;
+    grid-template-columns: 580px auto 150px 100px;
+    left: 0;
+    top: 0;
     padding-top: 25px;
-    padding-bottom:50px;
-    grid-template-columns: 9fr 1fr;
 }
 
 #top>* {
-    text-align: left;
-    padding-left: 50px;
-    padding-right: 50px;
-    margin-right: 50px;
-    margin-left: 50px;
+    text-align: center;
 }
 
 #refresh {
-    font-size: 25px;
+    text-align: center;
+    grid-column: 3/4;
+    z-index: 100;
+    font-size: 15px;
+    width: 100%;
+    height: auto;
     background-color: rgba(0, 0, 0, 0.5);
 }
 
@@ -180,10 +184,80 @@ button {
     background-color: transparent;
 }
 
-#vault{
-    padding-top: 250px;
+#vault {
+    position: absolute;
+    left: 0px;
+    margin-top: 30px;
+    padding-top: 20px;
+    margin-left: 100px;
 }
-.item{
-    width: 100px;
-    height:100px;
+
+#nameType{
+    margin-top: 10px;
+    margin-bottom: 5px;
+    display: grid;
+    grid-template-columns: auto auto;
+}
+
+#type{
+    text-align: right;
+    grid-column: 3/4;
+}
+
+.item {
+    width: 50px;
+    height: 50px;
+}
+
+#itemPanel {
+    /* visibility: hidden; */
+    z-index: 100;
+    text-align: left;
+    position:fixed;
+    background-color: #181a1b;
+    left:0;
+    top: 250px;
+    width: 350px;
+    height: auto;
+    border: 1px solid white;
+    padding: 5px 10px 5px 5px;
+}
+
+#itemPanel p {
+    width: 100%;
+    margin: 0px;
+}
+
+#name {
+    padding-top: 10px;
+}
+
+#screenshot {
+    width: 350px;
+}
+
+#stats {
+    padding-top: 10px;
+    padding-left: 15px;
+}
+
+.perk {
+    height: auto;
+    display: inline-block;
+}
+
+#area{
+    z-index: 100;
+    margin-left: 100px;
+    position: fixed;
+    display: grid;
+    grid-template-columns: 160px 160px 160px auto;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.charArea{
+    width: 100%;
+    height:100%;
 }

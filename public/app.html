@@ -3,70 +3,76 @@
     <head>
         <title>Vault Manager</title>
         <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
-        <script src="functions.js" defer></script>
-        <script src="app.js" defer></script>
-        <link rel="stylesheet" href="app.css">
+        <script src ="./itemContainer.js" defer></script>
+        <script src="./functions.js" defer></script>
+        <script src="./app.js" defer></script>
+        <link rel="stylesheet" href="./app.css">
     </head>
     <body>
+        <h1>Welcome, <span id="name"></span></h1>
         <div id="top">
-            <h1>Welcome, <span id="name"></span></h1>
+            <div id=characters></div>
             <button class="selector" id="refresh" onclick="internalVaultRefresh()">Refresh</button>
-            <div id=characters><h3 id="current">Current selection: <span id="select">none</span></h3></div>
         </div>
         <div id="alert"></div>
         <div id="status"></div>
         <div id="vault">
             <div id="Kinetic">
                 <div class="equip"></div>
-                <div class="inventory" id="VaultKinetic"></div>
+                <div class="inventory" id="Vault.Kinetic"></div>
             </div>
             <div id="Energy">
                 <div class="equip"></div>
-                <div class="inventory" id="VaultEnergy"></div>
+                <div class="inventory" id="Vault.Energy"></div>
             </div>
             <div id="Power">
                 <div class="equip"></div>
-                <div class="inventory" id="VaultPower"></div>
+                <div class="inventory" id="Vault.Power"></div>
             </div>
             <div id="Helmet">
                 <div class="equip"></div>
-                <div class="inventory" id="VaultHelmet"></div>
+                <div class="inventory" id="Vault.Helmet"></div>
             </div>
             <div id="Gauntlets">
                 <div class="equip"></div>
-                <div class="inventory" id="VaultGauntlets"></div>
+                <div class="inventory" id="Vault.Gauntlets"></div>
             </div>
             <div id="Chest">
                 <div class="equip"></div>
-                <div class="inventory" id="VaultChest"></div>
+                <div class="inventory" id="Vault.Chest"></div>
             </div>
             <div id="Leg">
                 <div class="equip"></div>
-                <div class="inventory" id="VaultLeg"></div>
+                <div class="inventory" id="Vault.Leg"></div>
             </div>
             <div id="Class">
                 <div class="equip"></div>
-                <div class="inventory" id="VaultClass"></div>
+                <div class="inventory" id="Vault.Class"></div>
             </div>
             <div id ="Ghost">
                 <div class="equip"></div>
-                <div class="inventory" id="VaultGhost"></div>
+                <div class="inventory" id="Vault.Ghost"></div>
             </div>
             <div id ="Ships">
                 <div class="equip"></div>
-                <div class="inventory" id="VaultShips"></div>
+                <div class="inventory" id="Vault.Ships"></div>
             </div>
             <div id ="Vehicle">
                 <div class="equip"></div>
-                <div class="inventory" id="VaultVehicle"></div>
+                <div class="inventory" id="Vault.Vehicle"></div>
             </div>
-            <h2>
-                Non-transferable Items
-            </h2>
-            <div id ="Emblems">
-                <div class="equip"></div>
-                <div class="inventory" id="VaultEmblems"></div>
+        </div>
+        <div id="itemPanel">
+            <p>
+                Item Infomation Panel
+            </p>
+            <div id="nameType">
+                <span id="panelName"></span>
+                <span id="type"></span>
             </div>
+            <img id="screenshot">
+            <div id="perks"></div>
+            <div id="stats"></div>
         </div>
     </body>
 </html>

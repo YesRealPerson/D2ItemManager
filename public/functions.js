@@ -1,21 +1,13 @@
 //FUNCTIONS
 
 //set current class
-const setCurrent = (char, classType) => {
-    var selectors = document.getElementsByClassName("selector");
-    for (var i = 0; i < selectors.length; i++) {
-        if (selectors[i].id == char) {
-            selectors[i].style.borderColor = "rgb(150,20,20)";
-        } else if (selectors[i].id != "refresh") {
-            selectors[i].style.borderColor = "white";
-        }
-    }
+const setCurrent = (char) => {
     currentChar = char;
-    document.getElementById("select").innerHTML = classType;
 }
 
 //setup class selector area
 const selectorSetup = (data) => {
+    console.log(data);
     var characters = data.classes;
 
     //setup elements
@@ -30,15 +22,26 @@ const selectorSetup = (data) => {
         var equip = document.getElementsByClassName('equip');
         for (var i = 0; i < equip.length; i++) {
             var charDiv = document.createElement('div');
-            charDiv.id = cID + "" + equip[i].parentElement.id;
-            charDiv.className = "charInventory";
+            charDiv.id = cID + "." + equip[i].parentElement.id;
+            charDiv.className = "charInventory glowHover";
             charDiv.innerHTML = " ";
+            charDiv.addEventListener("dragover", (event) => {
+                // prevent default to allow drop
+                console.log("above " + cID);
+                event.preventDefault();
+            });
+            charDiv.addEventListener("drop", (event) => {
+                event.preventDefault();
+                document.getElementById("tempStyle").remove();
+                var target = event.target.id.split(".");
+                setCurrent(target[0]);
+                transferItem(transferData[0], 1, transferData[1], transferData[2], 3, transferData[3], transferData[4]);
+            });
             equip[i].prepend(charDiv);
         }
 
         //setup character select button
         var charButton = document.createElement('button');
-        charButton.setAttribute("onclick", `setCurrent( "${cID}","${cType}")`);
         charButton.innerText = cType;
         charButton.setAttribute("class", "selector classes");
         charButton.setAttribute("id", cID);
@@ -88,49 +91,66 @@ const refreshVault = () => {
             */
             var i = 0;
             vault.forEach(item => {
-                var instance = Object.keys(item)[0];
-                item = item[instance];
-                var location = item.location + "" + item.type;
-                var icon = item.icon;
-                var hash = item.itemHash;
-                var name = item.name;
-                var rarity = item.rarity;
-                var inVault = item.location != "Vault";
                 try {
-                    rarity = rarity.split(" ")[0];
-                } catch {
-                    rarity = "undefined";
+                    var instance = Object.keys(item)[0];
+                    itemJSON = item;
+                    item = item[instance];
+                    var location = item.location + "." + item.type;
+                    var icon = item.icon;
+                    var hash = item.itemHash;
+                    var name = item.name;
+                    var rarity = item.rarity;
+                    var inVault = item.location != "Vault";
+
+                    let add = document.createElement('img');
+                    add.setAttribute("src", icon);
+                    add.setAttribute("title", name + "\n" + rarity);
+                    add.setAttribute("draggable", "true");
+                    add.addEventListener("dragstart", () => {
+                        var tempStyle = document.createElement("style");
+                        tempStyle.id = "tempStyle";
+                        tempStyle.innerHTML = ".item {pointer-events: none;} \n .glowHover{background-color: rgba(255,255,255,0.25);}";
+                        transferData[0] = hash;
+                        transferData[1] = inVault;
+                        transferData[2] = instance;
+                        transferData[3] = name;
+                        transferData[4] = item.location;
+                        document.body.appendChild(tempStyle);
+                    });
+                    add.addEventListener("dragend", () => {
+                        document.getElementById("tempStyle").remove();
+                    });
+
+                    let button = document.createElement('button');
+                    button.setAttribute("class", "item");
+                    button.setAttribute("onclick", `showItemInfo(${JSON.stringify(itemJSON)})`);
+                    button.appendChild(add);
+
+                    try {
+                        rarity = rarity.split(" ")[0];
+                    } catch {
+                        rarity = "undefined";
+                    }
+
+                    let div = document.createElement('div');
+                    div.setAttribute("class", "hoverwrap " + item.location + " " + i + " " + rarity + " item");
+                    div.setAttribute("id", instance);
+
+                    let hover = document.createElement('div');
+                    hover.setAttribute("class", "darken");
+
+                    div.appendChild(button);
+                    div.appendChild(hover);
+                    try {
+                        document.getElementById(location).appendChild(div);
+                    } catch {
+                        console.log(location);
+                    }
+                    i++;
+                } catch (err) {
+                    console.log("refresh vault error " + err);
                 }
-
-                let add = document.createElement('img');
-                add.setAttribute("src", icon);
-
-                let button = document.createElement('button');
-                button.setAttribute("onclick", 'transferItem(' + '"' + hash + '"' + ',"1",' + inVault + "," + '"' + instance + '"' + ',"3",' + '"' + name + '"' + ',"' + item.location + '"' + ')');
-                button.setAttribute("class", "item");
-                button.appendChild(add);
-
-                let div = document.createElement('div');
-                div.setAttribute("class", "hoverwrap " + item.location + " " + i + " " + rarity);
-                div.setAttribute("id", instance);
-
-                let caption = document.createElement('div');
-                caption.setAttribute("class", "hovercap");
-                caption.innerText = name;
-
-                let hover = document.createElement('div');
-                hover.setAttribute("class", "darken");
-
-                div.appendChild(button);
-                div.appendChild(caption);
-                div.appendChild(hover);
-                try{
-                    document.getElementById(location).appendChild(div);
-                }catch{
-                    console.log(location);
-                }
-                i++;
-            })
+            });
             if (document.getElementById("refreshMessage") != null) {
                 document.getElementById("refreshMessage").remove();
             }
@@ -168,11 +188,11 @@ vault
     false = to character
 }
 */
-const swap = (instance, character, vault) => {
+const swap = (hash, vault, instance, name, character) => {
     //variable setup
     var tbd = document.getElementById(instance);
     var temp = tbd.cloneNode(true);
-    
+
     var changeTo = "";
     if (vault) {
         changeTo = "Vault";
@@ -186,31 +206,37 @@ const swap = (instance, character, vault) => {
     }
     else {
         var itemType = tbd
-                .parentNode
-                .parentNode
-                .id;
-        var destination = document.getElementById(character+""+itemType);
-        changeTo = character+"";
+            .parentNode
+            .parentNode
+            .id;
+        var destination = document.getElementById(character + "." + itemType);
+        changeTo = character + "";
     }
-    
+
     var elementClasses = temp
         .className
         .split(" ");
-    var onclickFunction = temp
-        .firstElementChild
-        .getAttribute("onclick");
 
     //change attributes
-    onclickFunction = onclickFunction.split(",");
-    onclickFunction[2] = !vault;
-    onclickFunction[6] = "\""+changeTo+"\")";
-    onclickFunction = onclickFunction.join();
 
     elementClasses[1] = changeTo;
     elementClasses = elementClasses.join(" ");
 
-    temp.firstElementChild.setAttribute("onclick", onclickFunction);
     temp.setAttribute("class", elementClasses);
+
+    //set drag events
+    //temp.firstElementChild
+    temp.firstElementChild.addEventListener("dragstart", () => {
+        var tempStyle = document.createElement("style");
+        tempStyle.id = "tempStyle";
+        tempStyle.innerHTML = ".item {pointer-events: none;}";
+        transferData[0] = hash;
+        transferData[1] = !vault;
+        transferData[2] = instance;
+        transferData[3] = name;
+        transferData[4] = character;
+        document.body.appendChild(tempStyle);
+    });
 
     destination.appendChild(temp);
     tbd.remove();
@@ -250,7 +276,7 @@ const transferItem = async (hash, stack, vault, instance, membership, name, star
             var error = await response.text();
             if (response.status == 200) {
                 error = "Successfully transfered: " + name;
-                swap(instance, character, vault);
+                swap(hash, vault, instance, name, character);
             }
             console.log(error);
             message.innerHTML = JSON.stringify(error);
