@@ -79,7 +79,6 @@ fetch("./users/" + bungieid + ".oauth.json")
 
 var vaults = ["Kinetic", "Energy", "Power", "Helmet", "Gauntlets", "Chest", "Leg", "Class", "Ghost", "Ships", "Vehicle"];
 vaults.forEach(type => {
-    console.log("Vault."+type);
     var element = document.getElementById("Vault."+type);
     element.className +=" glowHover";
     element.addEventListener("dragover", (event) => {

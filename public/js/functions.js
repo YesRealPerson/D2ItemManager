@@ -133,13 +133,18 @@ const refreshVault = () => {
                     }
 
                     let div = document.createElement('div');
-                    div.setAttribute("class", "hoverwrap " + item.location + " " + i + " " + rarity + " item");
+                    div.setAttribute("class", "hoverwrap " + item.location + " " + i + " " + rarity + " item topItem");
                     div.setAttribute("id", instance);
 
                     let hover = document.createElement('div');
                     hover.setAttribute("class", "darken");
 
+                    let smallInfo = document.createElement('div');
+                    smallInfo.className = "smallInfo";
+                    smallInfo.innerHTML = "<img src=\""+item.damageIcon+"\" style=\"width: 10px; height: 10px; vertical-align: middle;\"> " + item.light +"<br>";
+
                     div.appendChild(button);
+                    div.appendChild(smallInfo);
                     div.appendChild(hover);
                     try {
                         document.getElementById(location).appendChild(div);

@@ -250,21 +250,24 @@ manifestPromise().then(async (res) => {
         reject("Invalid type parameter");
       }
     });
-
   }
 
   //rewrites item data into the way I want it :)
   const compileVaultData = async (item, location, stats, perks, general) => {
     return new Promise(async (resolve, reject) => {
       try {
-        try{
+        try {
           var light = general.lightLevel;
-        }catch(err){
+        } catch (err) {
           var light = "N/A";
-        }try{
+        } try {
           var damageType = general.damageType;
-        }catch(err){
+        } catch (err) {
           var damageType = "N/A";
+        } try {
+          var damageIcon = general.damageIcon;
+        } catch (err) {
+          var damageIcon = "N/A";
         }
         //get item instance id
         var itemInstanceId = item.itemInstanceId;
@@ -311,6 +314,7 @@ manifestPromise().then(async (res) => {
             "screenshot": screenshot,
             "type": type,
             "damageType": damageType,
+            "damageIcon": damageIcon,
             "light": light,
             "location": location,
             "rarity": rarity,
@@ -385,30 +389,36 @@ manifestPromise().then(async (res) => {
   const getInstanceInfo = async (id, manifest) => {
     return new Promise((resolve, reject) => {
       var damageTypes = ["", "Kinetic", "Arc", "Solar", "Void", "", "Stasis"];
+      var damageLinks = ["", "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_3385a924fd3ccb92c343ade19f19a370.png", "https://www.bungie.net/common/destiny2_content/icons/DestinyEnergyTypeDefinition_092d066688b879c807c3b460afdd61e6.png", "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_2a1773e10968f2d088b97c22b22bba9e.png", "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_ceb2f6197dccf3958bb31cc783eb97a0.png", "", "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_530c4c3e7981dc2aefd24fd3293482bf.png"];
       try {
         var data = manifest[id];
 
-        try{
+        try {
           var damage = damageTypes[data.damageType];
-          if(damage == ""){
+          var link = damageLinks[data.damageType];
+          if (damage == "") {
             damage = "N/A";
           }
-        }catch{
-          console.log("No damage type for "+id);
+          if (link == "") {
+            link = "N/A";
+          }
+        } catch {
+          console.log("No damage type for " + id);
           var damage = "N/A";
+          var link = "N/A";
         }
-        try{
+        try {
           var light = data.primaryStat.value;
-          if(light == ""){
+          if (light == "") {
             light = "N/A";
           }
-        }catch{
-          console.log("No light level for "+id);
+        } catch {
+          console.log("No light level for " + id);
           var light = "N/A";
         }
-
         var infoObj = {
           damageType: damage,
+          damageIcon: link,
           lightLevel: light
         };
         resolve(infoObj);
@@ -416,7 +426,57 @@ manifestPromise().then(async (res) => {
         reject("getInstanceInfo error: " + err);
       }
     });
-  }
+  };
+
+  const getTotalInfo = async (instanceId, item, instancedStats, instancedData, instancedPerks, location) => {
+    return new Promise(async (resolve) => {
+      try {
+        if (instanceId != undefined && item.bucketHash != 215593132) {
+          var itemStats = await getItemStats(instanceId, instancedStats)
+            .catch(err => {
+              console.log("No stats for: " + instanceId + " " + err);
+            });
+          var itemPerks = await getItemPerks(instanceId, instancedPerks)
+            .catch(err => {
+              console.log("No stats for: " + instanceId + " " + err);
+            });
+
+          var itemGeneral = await getInstanceInfo(instanceId, instancedData)
+            .catch(err => {
+              console.log("No light/damage type for: " + instanceId + " " + err);
+            });
+
+          var itemInfo = await compileVaultData(item, location, itemStats, itemPerks, itemGeneral)
+            .catch(err => {
+              console.log("Vault compilation error: " + instanceId + " " + err);
+            });
+
+          //TEMPORARY FIX FOR REVISION ZERO
+          if(item.itemHash == "1473821207" ||item.itemHash == 1473821207){
+            let rv = itemInfo[Object.keys(itemInfo)[0]]
+            rv.name = "Revision Zero";
+            rv.icon = "https://www.bungie.net/common/destiny2_content/icons/90e27f442038d0c7ea7249c1928f98c2.jpg";
+          }
+          //DELETE WHEN FIX RELEASES!!
+
+          resolve(itemInfo);
+        } else if (instanceId != undefined) {
+          resolve({
+            [instanceId]: {
+              "itemHash": item.itemHash,
+              "name": "Unknown Item"
+            }
+          });
+        } else {
+          resolve();
+        }
+      } catch (err) {
+        console.log(err);
+        resolve();
+      }
+
+    });
+  };
 
   //gets vault for player
   const getVault = async (d2id, bungieid) => {
@@ -458,96 +518,28 @@ manifestPromise().then(async (res) => {
           for (i in vault) {
             var item = vault[i];
             var instanceId = item.itemInstanceId;
-            if (instanceId != undefined && item.lockable && item.bucketHash != 215593132) {
-              var itemStats = await getItemStats(instanceId, instancedStats)
-                .catch(err => {
-                  console.log("No stats for: " + instanceId + " " + err);
-                });
-              var itemPerks = await getItemPerks(instanceId, instancedPerks)
-                .catch(err => {
-                  console.log("No stats for: " + instanceId + " " + err);
-                });
-
-              var itemGeneral = await getInstanceInfo(instanceId, instancedData)
-                .catch(err => {
-                  console.log("No light/damage type for: " + instanceId + " " + err);
-                });
-
-              var itemInfo = await compileVaultData(item, "Vault", itemStats, itemPerks, itemGeneral)
-                .catch(err => {
-                  console.log("Vault compilation error: " + instanceId + " " + err);
-                });
-
-              totalVault.push(itemInfo);
-            }
+            totalVault.push(await getTotalInfo(instanceId, item, instancedStats, instancedData, instancedPerks, "Vault"));
           }
 
           var currentChar = characters[0];
+          console.log(currentChar);
           vault = characterVaults[currentChar].items;
 
           for (i in vault) {
             var item = vault[i];
             var instanceId = item.itemInstanceId;
-            if (instanceId != undefined && item.lockable && item.bucketHash != 215593132) {
-              itemStats = [];
-              itemPerks = [];
-              itemGeneral = {};
-
-              itemStats = await getItemStats(instanceId, instancedStats)
-                .catch(err => {
-                  console.log("No stats for: " + instanceId + " " + err);
-                });
-              itemPerks = await getItemPerks(instanceId, instancedPerks)
-                .catch(err => {
-                  console.log("No perks for: " + instanceId + " " + err);
-                });
-              
-              itemGeneral = await getInstanceInfo(instanceId, instancedData)
-                .catch(err => {
-                  console.log("No light/damage type for: " + instanceId + " " + err);
-                });
-
-              var itemInfo = await compileVaultData(item, currentChar, itemStats, itemPerks, itemGeneral)
-                .catch(err => {
-                  console.log("Vault compilation error: " + instanceId + " " + err);
-                });
-
-              totalVault.push(itemInfo);
-            }
+            totalVault.push(await getTotalInfo(instanceId, item, instancedStats, instancedData, instancedPerks, currentChar));
           }
 
           try {
             currentChar = characters[1];
+            console.log(currentChar);
             vault = characterVaults[currentChar].items;
 
             for (i in vault) {
               var item = vault[i];
               var instanceId = item.itemInstanceId;
-              if (instanceId != undefined && item.lockable && item.bucketHash != 215593132) {
-                itemStats = [];
-                itemPerks = [];
-
-                itemStats = await getItemStats(instanceId, instancedStats)
-                  .catch(err => {
-                    console.log("No stats for: " + instanceId + " " + err);
-                  });
-                itemPerks = await getItemPerks(instanceId, instancedPerks)
-                  .catch(err => {
-                    console.log("No perks for: " + instanceId + " " + err);
-                  });
-                  
-                itemGeneral = await getInstanceInfo(instanceId, instancedData)
-                  .catch(err => {
-                    console.log("No light/damage type for: " + instanceId + " " + err);
-                  });
-
-                var itemInfo = await compileVaultData(item, currentChar, itemStats, itemPerks, itemGeneral)
-                  .catch(err => {
-                    console.log("Vault compilation error: " + instanceId + " " + err);
-                  });
-
-                totalVault.push(itemInfo);
-              }
+              totalVault.push(await getTotalInfo(instanceId, item, instancedStats, instancedData, instancedPerks, currentChar));
             }
           } catch {
             console.log("Second character DNE");
@@ -555,36 +547,13 @@ manifestPromise().then(async (res) => {
 
           try {
             currentChar = characters[2];
+            console.log(currentChar);
             vault = characterVaults[currentChar].items;
 
             for (i in vault) {
               var item = vault[i];
               var instanceId = item.itemInstanceId;
-              if (instanceId != undefined && item.lockable && item.bucketHash != 215593132) {
-                itemStats = [];
-                itemPerks = [];
-
-                itemStats = await getItemStats(instanceId, instancedStats)
-                  .catch(err => {
-                    console.log("No stats for: " + instanceId + " " + err);
-                  });
-                itemPerks = await getItemPerks(instanceId, instancedPerks)
-                  .catch(err => {
-                    console.log("No perks for: " + instanceId + " " + err);
-                  });
-
-                itemGeneral = await getInstanceInfo(instanceId, instancedData)
-                  .catch(err => {
-                    console.log("No light/damage type for: " + instanceId + " " + err);
-                  });
-
-                var itemInfo = await compileVaultData(item, currentChar, itemStats, itemPerks, itemGeneral)
-                  .catch(err => {
-                    console.log("Vault compilation error: " + instanceId + " " + err);
-                  });
-
-                totalVault.push(itemInfo);
-              }
+              totalVault.push(await getTotalInfo(instanceId, item, instancedStats, instancedData, instancedPerks, currentChar));
             }
           } catch {
             console.log("Third character DNE");
@@ -642,14 +611,14 @@ manifestPromise().then(async (res) => {
           //write new profile JSON to disk
           fs.writeFile("./public/users/" + bungieid + '.profile.json', JSON.stringify(endJSON), err => {
             if (err) {
-              reject("GetCharacters Error "+error)
+              reject("GetCharacters Error " + error)
             } else {
               resolve("Success");
             }
           });
         })
         .catch((error) => {
-          reject("GetCharacters Error "+error);
+          reject("GetCharacters Error " + error);
         });
     });
   }

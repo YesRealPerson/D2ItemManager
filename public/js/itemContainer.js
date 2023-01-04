@@ -57,6 +57,7 @@ function closeDragElement() {
 }
 
 const showItemInfo = async (item) => {
+    console.log(item);
     var instance = Object.keys(item)[0];
     item = item[instance];
     var name = item.name;
@@ -86,7 +87,7 @@ const showItemInfo = async (item) => {
     var statsElement = document.getElementById("stats");
     statsElement.innerText = "";
     if(item.damageType != "N/A"){
-        statsElement.innerHTML = "Damage Type: " + item.damageType + "<br>";
+        statsElement.innerHTML = "Damage Type: <img src=\""+item.damageIcon+"\" style=\"width: 15px; height: 15px; vertical-align: middle;\"> " + item.damageType +"<br>";
     }
     if(item.light != "N/A"){
         statsElement.innerHTML += "Light Level: " + item.light + "<br>";
