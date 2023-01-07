@@ -259,15 +259,15 @@ manifestPromise().then(async (res) => {
         try {
           var light = general.lightLevel;
         } catch (err) {
-          var light = "N/A";
+          var light = "";
         } try {
           var damageType = general.damageType;
         } catch (err) {
-          var damageType = "N/A";
+          var damageType = "";
         } try {
           var damageIcon = general.damageIcon;
         } catch (err) {
-          var damageIcon = "N/A";
+          var damageIcon = "";
         }
         //get item instance id
         var itemInstanceId = item.itemInstanceId;
@@ -292,6 +292,13 @@ manifestPromise().then(async (res) => {
         var name = info.displayProperties.name;
         //get applied ornament
         var override = item.overrideStyleItemHash;
+        //set flavor text of item
+        var flavor = info.flavorText;
+        //set url of icon watermark
+        var watermark = "https://www.bungie.net" + info.iconWatermark;
+        if (info.iconWatermark == undefined) {
+          watermark = "https://www.bungie.net/common/destiny2_content/icons/0dac2f181f0245cfc64494eccb7db9f7.png";
+        }
         //if ornament exists
         if (override != undefined) {
           //set obj to ornament
@@ -310,7 +317,9 @@ manifestPromise().then(async (res) => {
           [itemInstanceId]: {
             "itemHash": itemHash,
             "name": name,
+            "flavor": flavor,
             "icon": icon,
+            "watermark": watermark,
             "screenshot": screenshot,
             "type": type,
             "damageType": damageType,
@@ -362,16 +371,17 @@ manifestPromise().then(async (res) => {
 
   //gets stats for item
   const getItemStats = async (id, manifest) => {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       try {
         var stats = manifest[id].stats
         var keys = Object.keys(stats);
         var end = [];
-        keys.forEach(async stat => {
+        await keys.forEach(async stat => {
           var statInfo = await lookup(stat, 2)
             .catch(err => reject("getItemStats error: " + err));
+          var name = statInfo.displayProperties.name;
           var statFull = {
-            [statInfo.displayProperties.name]: {
+            [name]: {
               "icon": statInfo.displayProperties.icon,
               "value": stats[stat].value
             }
@@ -388,33 +398,40 @@ manifestPromise().then(async (res) => {
   //gets general instanced item info
   const getInstanceInfo = async (id, manifest) => {
     return new Promise((resolve, reject) => {
-      var damageTypes = ["", "Kinetic", "Arc", "Solar", "Void", "", "Stasis"];
-      var damageLinks = ["", "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_3385a924fd3ccb92c343ade19f19a370.png", "https://www.bungie.net/common/destiny2_content/icons/DestinyEnergyTypeDefinition_092d066688b879c807c3b460afdd61e6.png", "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_2a1773e10968f2d088b97c22b22bba9e.png", "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_ceb2f6197dccf3958bb31cc783eb97a0.png", "", "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_530c4c3e7981dc2aefd24fd3293482bf.png"];
       try {
         var data = manifest[id];
 
-        try {
-          var damage = damageTypes[data.damageType];
-          var link = damageLinks[data.damageType];
-          if (damage == "") {
-            damage = "N/A";
+        if (data.damageType != 0) {
+          var damageTypes = ["", "Kinetic", "Arc", "Solar", "Void", "", "Stasis"];
+          var damageLinks = ["./images/empty.png", "./images/kinetic.png", "./images/arc.png", "./images/solar.png", "./images/void.png", "./images/empty.png", "./images/stasis.png"]
+          try {
+            var damage = damageTypes[data.damageType];
+            var link = damageLinks[data.damageType];
+          } catch {
+            console.log("No damage type for " + id);
+            var damage = "";
+            var link = "./images/empty.png";
           }
-          if (link == "") {
-            link = "N/A";
+        } else {
+          var damageTypes = ["", "Arc", "Solar", "Void", "", "", "Stasis"];
+          var damageLinks = ["./images/empty.png", "./images/arc.png", "./images/solar.png", "./images/void.png", "./images/empty.png", "./images/empty.png", "./images/stasis.png"]
+          try {
+            var damage = damageTypes[data.energy.energyType];
+            var link = damageLinks[data.energy.energyType];
+          } catch {
+            console.log("No damage type for " + id);
+            var damage = "";
+            var link = "./images/empty.png";
           }
-        } catch {
-          console.log("No damage type for " + id);
-          var damage = "N/A";
-          var link = "N/A";
         }
         try {
           var light = data.primaryStat.value;
           if (light == "") {
-            light = "N/A";
+            light = "";
           }
         } catch {
           console.log("No light level for " + id);
-          var light = "N/A";
+          var light = "";
         }
         var infoObj = {
           damageType: damage,
@@ -452,9 +469,10 @@ manifestPromise().then(async (res) => {
             });
 
           //TEMPORARY FIX FOR REVISION ZERO
-          if(item.itemHash == "1473821207" ||item.itemHash == 1473821207){
+          if (item.itemHash == "1473821207" || item.itemHash == 1473821207) {
             let rv = itemInfo[Object.keys(itemInfo)[0]]
             rv.name = "Revision Zero";
+            rv.rarity = "Exotic Pulse Rifle";
             rv.icon = "https://www.bungie.net/common/destiny2_content/icons/90e27f442038d0c7ea7249c1928f98c2.jpg";
           }
           //DELETE WHEN FIX RELEASES!!
@@ -464,7 +482,8 @@ manifestPromise().then(async (res) => {
           resolve({
             [instanceId]: {
               "itemHash": item.itemHash,
-              "name": "Unknown Item"
+              "name": "Unknown Item",
+              "rarity": "Common Unknown",
             }
           });
         } else {
@@ -518,45 +537,30 @@ manifestPromise().then(async (res) => {
           for (i in vault) {
             var item = vault[i];
             var instanceId = item.itemInstanceId;
-            totalVault.push(await getTotalInfo(instanceId, item, instancedStats, instancedData, instancedPerks, "Vault"));
-          }
-
-          var currentChar = characters[0];
-          console.log(currentChar);
-          vault = characterVaults[currentChar].items;
-
-          for (i in vault) {
-            var item = vault[i];
-            var instanceId = item.itemInstanceId;
-            totalVault.push(await getTotalInfo(instanceId, item, instancedStats, instancedData, instancedPerks, currentChar));
-          }
-
-          try {
-            currentChar = characters[1];
-            console.log(currentChar);
-            vault = characterVaults[currentChar].items;
-
-            for (i in vault) {
-              var item = vault[i];
-              var instanceId = item.itemInstanceId;
-              totalVault.push(await getTotalInfo(instanceId, item, instancedStats, instancedData, instancedPerks, currentChar));
+            item = await getTotalInfo(instanceId, item, instancedStats, instancedData, instancedPerks, currentChar)
+            if (item != null && item != undefined) {
+              totalVault.push(item);
             }
-          } catch {
-            console.log("Second character DNE");
           }
 
-          try {
-            currentChar = characters[2];
-            console.log(currentChar);
-            vault = characterVaults[currentChar].items;
+          //character inventories
+          for (var k = 0; k < 3; k++) {
+            try {
+              currentChar = characters[k];
+              console.log(currentChar);
+              vault = characterVaults[currentChar].items;
 
-            for (i in vault) {
-              var item = vault[i];
-              var instanceId = item.itemInstanceId;
-              totalVault.push(await getTotalInfo(instanceId, item, instancedStats, instancedData, instancedPerks, currentChar));
+              for (i in vault) {
+                var item = vault[i];
+                var instanceId = item.itemInstanceId;
+                item = await getTotalInfo(instanceId, item, instancedStats, instancedData, instancedPerks, currentChar)
+                if (item != null && item != undefined) {
+                  totalVault.push(item);
+                }
+              }
+            } catch {
+              console.log("character " + k + " DNE");
             }
-          } catch {
-            console.log("Third character DNE");
           }
 
           vault = { "data": totalVault };

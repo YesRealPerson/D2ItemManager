@@ -25,6 +25,9 @@ var classes = ["Titan", "Hunter", "Warlock"];
 //Current character
 var currentChar = "";
 
+//sorting priority
+var powerFirst = false;
+
 //Variables for current transfer
 
 var transferData = [null, null, null, null, null];
@@ -84,7 +87,7 @@ vaults.forEach(type => {
     element.addEventListener("dragover", (event) => {
         // prevent default to allow drop
         event.preventDefault();
-        console.log("above vault");
+        // console.log("above vault");
     });
     element.addEventListener("drop", (event) => {
         event.preventDefault();

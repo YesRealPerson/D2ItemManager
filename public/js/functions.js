@@ -7,12 +7,10 @@ const setCurrent = (char) => {
 
 //setup class selector area
 const selectorSetup = (data) => {
-    console.log(data);
+    // console.log(data);
     var characters = data.classes;
 
     //setup elements
-    document.getElementById("name").innerText = pName;
-
     characters.forEach(character => {
         var cType = classes[character.classType]; //warlock, hunter, titan
         var cID = character.charId; //per character ID set by Bungie
@@ -27,7 +25,7 @@ const selectorSetup = (data) => {
             charDiv.innerHTML = " ";
             charDiv.addEventListener("dragover", (event) => {
                 // prevent default to allow drop
-                console.log("above " + cID);
+                // console.log("above " + cID);
                 event.preventDefault();
             });
             charDiv.addEventListener("drop", (event) => {
@@ -76,24 +74,40 @@ const refreshVault = () => {
                 charInventories[i].innerHTML = "";
             }
 
-            /*
-            {"6917529794685726238":
-                {
-                    "itemHash":2814122105,
-                    "name":"BrayTech Researcher's Boots",
-                    "icon":"https://www.bungie.net/common/destiny2_content/icons/c01038cd6b50e9ec07f2290990c3c6b7.jpg",
-                    "screenshot":"https://www.bungie.net/common/destiny2_content/screenshots/2814122105.jpg",
-                    "type":"Legs",
-                    "location":"vault",
-                    "rarity":"Legendary Leg Armor"
+            vault.sort((i1, i2) => {
+                if (i1 == i2) {
+                    return 0;
                 }
-            }
-            */
-            var i = 0;
+                if (i1 == null) {
+                    return -1;
+                } if (i2 == null) {
+                    return 1;
+                }
+                try {
+                    var order = ["Exotic", "Legendary", "Rare", "Uncommon", "Common"];
+                    var i1 = i1[Object.keys(i1)[0]];
+                    var i2 = i2[Object.keys(i2)[0]];
+                    var difference = order.indexOf(i1.rarity.split(" ")[0]) - order.indexOf(i2.rarity.split(" ")[0]);
+                    if(powerFirst){
+                        difference = 0;
+                    }
+                    if (difference == 0) {
+                        difference = i2.light - i1.light;
+                    }
+                    return (difference);
+                } catch (err) {
+                    console.log(err);
+                    return (0);
+                }
+
+            });
+
+            var i = -1;
             vault.forEach(item => {
+                i++;
                 try {
                     var instance = Object.keys(item)[0];
-                    itemJSON = item;
+                    var itemJSON = item;
                     item = item[instance];
                     var location = item.location + "." + item.type;
                     var icon = item.icon;
@@ -101,6 +115,7 @@ const refreshVault = () => {
                     var name = item.name;
                     var rarity = item.rarity;
                     var inVault = item.location != "Vault";
+                    var overlay = item.watermark;
 
                     let add = document.createElement('img');
                     add.setAttribute("src", icon);
@@ -121,10 +136,17 @@ const refreshVault = () => {
                         document.getElementById("tempStyle").remove();
                     });
 
+                    let watermark = document.createElement('img');
+                    watermark.setAttribute("src", overlay);
+                    watermark.style.pointerEvents = "none";
+                    watermark.style.position = "absolute";
+                    watermark.style.left = "0";
+                    watermark.style.top = "0";
+
                     let button = document.createElement('button');
                     button.setAttribute("class", "item");
-                    button.setAttribute("onclick", `showItemInfo(${JSON.stringify(itemJSON)})`);
                     button.appendChild(add);
+                    button.appendChild(watermark);
 
                     try {
                         rarity = rarity.split(" ")[0];
@@ -135,13 +157,14 @@ const refreshVault = () => {
                     let div = document.createElement('div');
                     div.setAttribute("class", "hoverwrap " + item.location + " " + i + " " + rarity + " item topItem");
                     div.setAttribute("id", instance);
+                    div.setAttribute("onclick", `showItemInfo(${i})`);
 
                     let hover = document.createElement('div');
                     hover.setAttribute("class", "darken");
 
                     let smallInfo = document.createElement('div');
                     smallInfo.className = "smallInfo";
-                    smallInfo.innerHTML = "<img src=\""+item.damageIcon+"\" style=\"width: 10px; height: 10px; vertical-align: middle;\"> " + item.light +"<br>";
+                    smallInfo.innerHTML = "<img src=\"" + item.damageIcon + "\" style=\"width: 10px; height: 10px; vertical-align: middle;\"><p>" + item.light + "</p>";
 
                     div.appendChild(button);
                     div.appendChild(smallInfo);
@@ -149,9 +172,8 @@ const refreshVault = () => {
                     try {
                         document.getElementById(location).appendChild(div);
                     } catch {
-                        console.log(location);
+                        // console.log(location);
                     }
-                    i++;
                 } catch (err) {
                     console.log("refresh vault error " + err);
                 }
@@ -234,7 +256,7 @@ const swap = (hash, vault, instance, name, character) => {
     temp.firstElementChild.addEventListener("dragstart", () => {
         var tempStyle = document.createElement("style");
         tempStyle.id = "tempStyle";
-        tempStyle.innerHTML = ".item {pointer-events: none;}";
+        tempStyle.innerHTML = ".item {pointer-events: none;}\n .glowHover{background-color: rgba(255,255,255,0.25);}";
         transferData[0] = hash;
         transferData[1] = !vault;
         transferData[2] = instance;
@@ -275,7 +297,7 @@ const transferItem = async (hash, stack, vault, instance, membership, name, star
     }
 
     //Send request
-    console.log("Sending request");
+    // console.log("Sending request");
     fetch("./transfer?hash=" + hash + "&stack=" + stack + "&vault=" + vault + "&instance=" + instance + "&character=" + character + "&membership=" + membership + "&bungie=" + bungieid)
         .then(async (response) => {
             var error = await response.text();

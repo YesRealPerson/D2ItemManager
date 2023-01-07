@@ -6,12 +6,15 @@
         <script src ="./js/itemContainer.js" defer></script>
         <script src="./js/functions.js" defer></script>
         <script src="./js/app.js" defer></script>
+        <script src ="./js/windows.js" defer></script>
+        <script src ="./js/search.js" defer></script>
         <link rel="stylesheet" href="./css/app.css">
     </head>
     <body>
-        <h1>Welcome, <span id="name"></span></h1>
         <div id="top">
             <div id=characters></div>
+            <button class="selector" id="help" onclick="help()">Help</button>
+            <button class="selector" id="settings" onclick="settings()">Settings</button>
             <button class="selector" id="refresh" onclick="internalVaultRefresh()">Refresh</button>
         </div>
         <div id="alert"></div>
@@ -67,12 +70,38 @@
                 Item Infomation Panel
             </p>
             <div id="nameType">
-                <span id="panelName"></span>
                 <span id="type"></span>
+                <span id="panelName"></span>
             </div>
+            <div id="flavor"></div>
             <img id="screenshot">
             <div id="perks"></div>
-            <div id="stats"></div>
+            <div id="stats">
+                <div id="stat"></div>
+                <div id="valueBar"></div>
+            </div>
+        </div>
+        <div id="settingsPanel" class="window">
+            <div>
+                <h3>Settings</h3>
+                <p>Press 'ESC' to close this window.<br> Hover over a setting to see it's current value</p>
+                <button id="sortToggle" title="Sorting by rarity" onclick="toggleSort();">Sort vault by power</button>
+            </div>
+        </div>
+        <div id="helpPanel" class="window">
+            <div>
+                <h3>Help</h3>
+                <p style="margin-top: 10px; margin-bottom: 10px;">Press 'ESC' to close this window.</p>
+                <p>How to transfer items</p>
+                <li title="Currently it is only possible to transfer from character to vault or vault to character. This will be fixed in the future">Drag and drop items to the desired location (hover for more details)</li>
+                <p>Item Information Panel</p>
+                <li>Click on any item to view information about it</li>
+                <li>Hover over perks to read it's name and description</li>
+                <li>Press 'H' to hide the panel</li>
+                <li>Press 'R' to reset the location of the panel</li>
+                <p>Additional notes</p>
+                <li>Currently Revision Zero is not properly represented in the API, so specific details are not viewable from<i>anywhere</i>besides in-game or hard-coded resources (where all details are manually written in).</li>
+            </div>
         </div>
     </body>
 </html>
