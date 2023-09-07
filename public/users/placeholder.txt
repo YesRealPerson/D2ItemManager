@@ -1,0 +1,4 @@
+This text file is only here so the users folder gets added to git feel free to delete :)
+
+The users folder is where all the profile information goes
+i.e. vault information
