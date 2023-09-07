@@ -149,6 +149,23 @@ const filter = (tags) => {
                 } else {
                     keys[i] = "";
                 }
+            } 
+            else if (tag[0] == "breaker") {
+                let champion = item.champion;
+                let champions = {
+                    "barrier": 1,
+                    "unstop": 3,
+                    "unstoppable": 3,
+                    "overload": 2,
+                    "over": 2
+                }
+                try{
+                    if(champions[tag[1].toLowerCase()]!=champion){
+                        keys[i] = "";
+                    }
+                }catch{
+                    keys[i] = "";
+                }
             } else {
                 try {
                     let toCheck = item[tag[0]].toLowerCase();

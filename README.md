@@ -1,5 +1,7 @@
 Recreation of DIM for fun
 
+Do not use this on a public server, your oauth keys have no protection because I am too lazy to implement it.
+
 # How to use
 
 1. Create a .env file

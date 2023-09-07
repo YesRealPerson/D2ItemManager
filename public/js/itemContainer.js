@@ -190,14 +190,6 @@ const showItemInfo = async (instance) => {
         bar.className = "bar";
         bar.title = value;
         var innerBar = document.createElement("div");
-        if (armor) {
-            value *= 2.25;
-        }
-        innerBar.className = "innerBar";
-        innerBar.style.width = value + "%";
-        if (name == "Rounds Per Minute" || name == "Charge Time" || name == "Draw Time" || name == "Magazine") {
-            bar.style.visibility = "hidden";
-        }
         if (colorBars) {
             if (value > 45) {
                 innerBar.style.backgroundColor = "rgb(0,200,0)";
@@ -208,6 +200,19 @@ const showItemInfo = async (instance) => {
                 innerBar.style.backgroundColor = "rgb(200,0,0)";
             }
         }
+        if(value < 0) {
+            innerBar.style.backgroundColor = "rgb(200,0,0)"
+            value *= -1;
+        }
+        if (armor) {
+            value *= 2.25;
+        }
+        innerBar.className = "innerBar";
+        innerBar.style.width = value + "%";
+        if (name == "Rounds Per Minute" || name == "Charge Time" || name == "Draw Time" || name == "Magazine") {
+            bar.style.visibility = "hidden";
+        }
+        
         bar.appendChild(innerBar);
         barElement.appendChild(bar);
     })
