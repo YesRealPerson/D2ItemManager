@@ -465,9 +465,18 @@ manifestPromise().then(async (res) => {
               var perkInfo = (
                 await lookup(perk.plugHash, 0)
                   .catch(err => reject("getItemsPerks error for +" + perk.plugHash + ": " + err)
-                  )).displayProperties;
+                  ));
+              var perkType = perkInfo.itemTypeDisplayName;
+              perkInfo = perkInfo.displayProperties;
+              var name = perkInfo.name;
+              if(perkType == "Enhanced Trait"){
+                console.log(name);
+                if(name.indexOf("Enhanced")==-1){
+                  name = "Enhanced "+name;
+                }
+              }
               perk = {
-                "name": perkInfo.name,
+                "name": name,
                 "icon": "https://bungie.net" + perkInfo.icon,
                 "description": perkInfo.description
               }
@@ -819,15 +828,18 @@ manifestPromise().then(async (res) => {
 
             await refreshToken(oauth)
               .then((response) => {
-                console.log(response);
-                console.log(response.split[0]);
-                if (response.split(".")[0] == "200") {
+                let code = response.split('.')[0];
+                console.log(code);
+                if (code == "200") {
                   fs.readFile("./public/users/" + bungie + ".oauth.json", async (err, data) => {
                     if (err) {
                       reject(err);
                     }
                     oauth = JSON.parse(data);
                   });
+                }else if(code != "100"){
+                  console.log(response);
+                  reject("500")
                 }
               }).then(() => {
                 //transfer item
@@ -891,16 +903,18 @@ manifestPromise().then(async (res) => {
             var oauth = JSON.parse(data);
 
             await refreshToken(oauth)
-              .then((response) => {
-                console.log(response);
-                console.log(response.split[0]);
-                if (response.split(".")[0] == "200") {
-                  fs.readFile("./public/users/" + bungie + ".oauth.json", async (err, data) => {
+              .then(async (response) => {
+                let code = response.split('.')[0];
+                if (code == "200") {
+                  await fs.readFile("./public/users/" + bungie + ".oauth.json", async (err, data) => {
                     if (err) {
                       reject(err);
                     }
-                    oauth = JSON.parse(data);
+                    oauth = await JSON.parse(data);
                   });
+                }else if(code != "100"){
+                  console.log(response);
+                  reject("500")
                 }
               }).then(() => {
                 //console.log("Transfering Item for: " + bungie);
@@ -959,6 +973,10 @@ manifestPromise().then(async (res) => {
             })
             throw BreakException
           }
+        })
+        import("open").then((open) => {
+          let url = "https://localhost/";
+          open.default(url);
         })
       } catch { }
     }

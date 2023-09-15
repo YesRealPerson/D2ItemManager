@@ -120,3 +120,5 @@ vaults.forEach(type => {
         }
     });
 });
+
+cycle();

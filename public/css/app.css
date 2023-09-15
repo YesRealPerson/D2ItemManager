@@ -165,8 +165,6 @@ svg
 {
 	display:inline-block;
 	height:auto;
-	max-height:50px;
-	max-width:50px;
 }
 
 .selector
@@ -366,7 +364,8 @@ svg
 	position:fixed;
 	text-align:left;
 	top:250px;
-	width:350px;
+	width: 20vw;
+	min-width: 350px;
 	z-index:100;
 }
 
@@ -399,7 +398,8 @@ svg
 
 #screenshot
 {
-	width:350px;
+	width: 20vw;
+	min-width: 350px;
 }
 
 #searchBox
@@ -423,13 +423,29 @@ svg
 	z-index:100;
 }
 
+#perks{
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
 #stats
 {
 	display:grid;
-	grid-template-columns:60% 40%;
+	grid-template-columns:30% 20% 50%;
 	padding-left:15px;
 	padding-top:10px;
-	text-align:right;
+	text-align:left;
+}
+
+#statValue{
+	overflow:visible;
+	white-space: nowrap;
+	padding-left: 1vw;
+}
+
+#statName{
+	text-align: right;
 }
 
 #status
@@ -484,4 +500,8 @@ svg
 	top:10px;
 	right:10px;
 
+}
+
+#itemButton{
+	z-index: 5000;
 }

@@ -14,6 +14,8 @@ Do not use this on a public server, your oauth keys have no protection because I
 8. Encode your OAuth client_id and OAuth client_secret as {client}:{secret} into base64
 9. Put your base64 string under BASIC
 10. Generate your SSL certificate and key (name them cert.pem and key.pem)
+    - You can use OpenSSL for this
+    - Bungie does not like regular http for the redirect uri
 11. Run run.bat
 
 Sorry if it sucks, just use DIM.

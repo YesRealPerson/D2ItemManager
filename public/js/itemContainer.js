@@ -6,7 +6,7 @@ window.onkeydown = hide;
 
 function hide(e) {
     // console.log(e.keyCode);
-    if (e.keyCode === 72) {
+    if (e.keyCode === 72 && document.activeElement != document.getElementById('searchBox')) {
         if (visibility) {
             draggable.style.visibility = "hidden";
             visibility = false;
@@ -95,7 +95,7 @@ const showItemInfo = async (instance) => {
         document.getElementById("panelName").innerHTML += "<br>" + breakerNames[item.champion] + "  <img style=\"width:15px; height: 15px; top:2px; position:relative;\" src = \"" + breakers[item.champion] + "\">";
     }
     if (item.classtype == 3) {
-        document.getElementById("type").innerHTML = rarity + " " + item.family + "<br>";
+        document.getElementById("type").innerHTML = rarity + " " + item.family +"<br>";
     } else {
         document.getElementById("type").innerHTML = classes[item.classtype] + " " + rarity + " " + item.family + "<br>";
     }
@@ -120,31 +120,42 @@ const showItemInfo = async (instance) => {
         icon.setAttribute("src", perk.icon);
         icon.setAttribute("class", "perk");
         icon.setAttribute("title", perk.name + "<br>" + perk.description.replace(/\n/g, "<br>"));
-        var width = Math.floor(350 / perks.length);
-        icon.style.width = width + "px";
+        var width = (20/perks.length);
+        var minWidth = (350/perks.length);
+        icon.style.width = "calc("+width + "vw)";
+        icon.style.minWidth = minWidth+"px";
+        if(perk.name.indexOf("Enhanced") != -1){
+            icon.style.border = "2px solid #eade8b";
+            icon.style.borderRadius = "200px";
+            icon.style.width = "calc(-4px)";
+        }
         perkElement.appendChild(icon);
     });
 
-    var statsElement = document.getElementById("stat");
+    var statsElement = document.getElementById("statName");
     statsElement.innerHTML = "";
     var barElement = document.getElementById("valueBar");
     barElement.innerHTML = "";
+    var valueElement = document.getElementById("statValue");
+    valueElement.innerHTML = "";
     var down = 0;
     statsElement.innerText = "";
     if (item.damagetype != "") {
-        statsElement.innerHTML += "Element Type: <img src=\"" + item.damageicon + "\" style=\"width: 15px; height: 15px; vertical-align: middle;\"> " + item.damagetype + "<br>";
+        statsElement.innerHTML += "Element:<br>";
+        valueElement.innerHTML += item.damagetype+" <img src=\"" + item.damageicon + "\" style=\"width: 15px; height: 15px; vertical-align: middle;\"> " +"<br>";
         down++;
     }
     if (item.light != "") {
-        statsElement.innerHTML += "Light Level: " + item.light + "<br>";
+        statsElement.innerHTML += "Light Level:<br>";
+        valueElement.innerHTML += item.light + "<img src=\"/images/light.png\" style=\"width: 15px; height: 15px; vertical-align: middle;  transform: scaleX(-1);\">" +"<br>";
         down++;
     }
 
     barElement.style.marginTop = down * 19 + "px";
     var armorStatNames = ["Mobility", "Resilience", "Recovery", "Discipline", "Intellect", "Strength"];
-    var 김정은 = stats[0].name;
+    var armorTest = stats[0].name;
 
-    if (armorStatNames.indexOf(김정은) != -1) {
+    if (armorStatNames.indexOf(armorTest) != -1) {
         armor = true;
     }
 
@@ -178,13 +189,25 @@ const showItemInfo = async (instance) => {
         var name = stat.name;
         var value = stat.value;
         var icon = stat.icon;
-        var stat = name + ": " + value;
         var armor = false;
+        if(name=="Aim Assistance"){
+            name = "AA";
+        }else if(name=="Airborne Effectiveness"){
+            name ="AE";
+        }else if(name=="Reload Speed"){
+            name="Reload";
+        }else if(name=="Recoil Direction"){
+            name="Recoil";
+        }
+        else if(name=="Rounds Per Minute"){
+            name="RPM";
+        }
+        statsElement.innerHTML += name+":<br>";
         if (icon != "https://bungie.netundefined") {
-            statsElement.innerHTML += stat + "  <img src = " + icon + " style=\"height: 15px; width: auto; vertical-align: middle;\"><br>";
+            valueElement.innerHTML += "<img src = " + icon + " style=\"height: 15px; width: auto; vertical-align: middle;\"> "+value+"<br>";
             armor = true;
         } else {
-            statsElement.innerHTML += stat + "<br>";
+            valueElement.innerHTML += value + "<br>";
         }
         var bar = document.createElement("div");
         bar.className = "bar";
@@ -209,7 +232,7 @@ const showItemInfo = async (instance) => {
         }
         innerBar.className = "innerBar";
         innerBar.style.width = value + "%";
-        if (name == "Rounds Per Minute" || name == "Charge Time" || name == "Draw Time" || name == "Magazine") {
+        if (name == "RPM" || name == "Charge Time" || name == "Draw Time" || name == "Magazine") {
             bar.style.visibility = "hidden";
         }
         
