@@ -1,9 +1,12 @@
+let response = "";
 const main = async () => {
     //Get parameters from URL
     const params = new URLSearchParams(window.location.search);
     try {
         //Send OAuth token request
-        const response = JSON.parse(await (await fetch("https://d2oauth.spark952.workers.dev?code=" + params.get("code"))).text());
+        response = await fetch("https://d2oauth.spark952.workers.dev?code=" + params.get("code"));
+        reponse = await response.json();
+
         //Store tokens and ID inside of local storage
         if(!response.access_token || !response.refresh_token || !response.membership_id){
             console.log(response)
