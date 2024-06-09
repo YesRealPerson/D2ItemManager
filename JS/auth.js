@@ -5,12 +5,11 @@ const main = async () => {
     try {
         //Send OAuth token request
         response = await fetch("https://d2oauth.spark952.workers.dev?code=" + params.get("code"));
-        reponse = await response.json();
+        response = JSON.parse(await response.json());
 
         //Store tokens and ID inside of local storage
         if(!response.access_token || !response.refresh_token || !response.membership_id){
-            console.log(response)
-            console.error("OAuth failed!");
+            document.body.innerText = "Authentication failed!\nError:\n" + response.error + "\n" + response.error_description;
         }else{
             localStorage.setItem("access", response.access_token);
             localStorage.setItem("refresh", response.refresh_token);
