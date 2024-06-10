@@ -26,7 +26,7 @@ const refreshManifests = async () => {
                 "X-API-Key": XAPI
             }
             // Get primary manifest
-            let data = JSON.parse(await (await fetch(baseURL + "manifest", { headers: header })).json());
+            let data = JSON.parse(await (await fetch(baseURL + "manifest", { credentials: 'include', headers: header })).json());
 
             console.log(data);
             // Go to JSON data that we actually care about
@@ -41,7 +41,7 @@ const refreshManifests = async () => {
             // Download and set all manifests
             for (let i = 0; i < 4; i++) {
                 console.log("Downloading: " + debugMessages[i]);
-                manifests[i] = JSON.parse(await ((await fetch(toDownload[i], { headers: header })).json()));
+                manifests[i] = JSON.parse(await ((await fetch(toDownload[i], { credentials: 'include', headers: header })).json()));
             }
             // Return success
             res(200)
