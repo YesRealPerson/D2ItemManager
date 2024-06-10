@@ -5,7 +5,7 @@ const refresh = localStorage.getItem("refresh");
 const accID = localStorage.getItem("accountID");
 
 // Base url for API requests
-const baseURL = "https://bungie.net/platform/Destiny2/";
+const baseURL = "https://www.bungie.net/platform/Destiny2/";
 
 /*
 manifests
