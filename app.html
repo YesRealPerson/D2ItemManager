@@ -3,8 +3,10 @@
 	<head>
 		<title>Confluxes Item Manager</title>
         
+        <script src="./JS/windows.js" defer></script>
         <script src="./JS/notification.js" defer></script>
         <script src="./JS/app.js" defer></script>
+        <script src="./JS/itemPanel.js" defer></script>
         <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
         <link rel="stylesheet" href="./CSS/app.css">
     </head>
@@ -12,63 +14,76 @@
         <div id="top">
             <div id=characters></div>
             <input type="text" id="searchBox" autocomplete="off" placeholder="Search" oninput="search(this.value);">
-            <button class="selector menu" id="help" onclick="help()">Help</button>
-            <button class="selector menu" id="settings" onclick="settings()">Settings</button>
-            <button class="selector menu" id="refresh" onclick="internalVaultRefresh()">Refresh</button>
+            <button class="selector menu" id="help" onclick="showHelp()">Help</button>
+            <button class="selector menu" id="settings" onclick="showSettings()">Settings</button>
+            <button class="selector menu" id="refresh" onclick="getVault()">Refresh</button>
         </div>
         <div id="status"></div>
         <div id="vault">
-            <div id="Subclass">
-                <div class="equip"></div>
-                <div class="inventory" id="Vault.Subclass"></div>
+            <div class="Bucket" id="Subclass">
+                <div class="equipped" id="Equipped.Sublass"></div>
+                <div class="inventory" id="Inventory.Subclass"></div>
+                <div class="vault" id="Vault.Subclass"></div>
             </div>
-            <div id="Kinetic">
-                <div class="equip"></div>
-                <div class="inventory" id="Vault.Kinetic"></div>
+            <div class="Bucket" id="Kinetic">
+                <div class="equipped" id="Equipped.Kinetic"></div>
+                <div class="inventory" id="Inventory.Kinetic"></div>
+                <div class="vault" id="Vault.Kinetic"></div>
             </div>
-            <div id="Energy">
-                <div class="equip"></div>
-                <div class="inventory" id="Vault.Energy"></div>
+            <div class="Bucket" id="Energy">
+                <div class="equipped" id="Equipped.Energy"></div>
+                <div class="inventory" id="Inventory.Energy"></div>
+                <div class="vault" id="Vault.Energy"></div>
             </div>
-            <div id="Power">
-                <div class="equip"></div>
-                <div class="inventory" id="Vault.Power"></div>
+            <div class="Bucket" id="Power">
+                <div class="equipped" id="Equipped.Power"></div>
+                <div class="inventory" id="Inventory.Power"></div>
+                <div class="vault" id="Vault.Power"></div>
             </div>
-            <div id="Helmet">
-                <div class="equip"></div>
-                <div class="inventory" id="Vault.Helmet"></div>
+            <div class="Bucket" id="Helmet">
+                <div class="equipped" id="Equipped.Helmet"></div>
+                <div class="inventory" id="Inventory.Helmet"></div>
+                <div class="vault" id="Vault.Helmet"></div>
             </div>
-            <div id="Gauntlets">
-                <div class="equip"></div>
-                <div class="inventory" id="Vault.Gauntlets"></div>
+            <div class="Bucket" id="Gauntlets">
+                <div class="equipped" id="Equipped.Gauntlets"></div>
+                <div class="inventory" id="Inventory.Gauntlets"></div>
+                <div class="vault" id="Vault.Gauntlets"></div>
             </div>
-            <div id="Chest">
-                <div class="equip"></div>
-                <div class="inventory" id="Vault.Chest"></div>
+            <div class="Bucket" id="Chest">
+                <div class="equipped" id="Equipped.Chest"></div>
+                <div class="inventory" id="Inventory.Chest"></div>
+                <div class="vault" id="Vault.Chest"></div>
             </div>
-            <div id="Leg">
-                <div class="equip"></div>
-                <div class="inventory" id="Vault.Leg"></div>
+            <div class="Bucket" id="Leg">
+                <div class="equipped" id="Equipped.Leg"></div>
+                <div class="inventory" id="Inventory.Leg"></div>
+                <div class="vault" id="Vault.Leg"></div>
             </div>
-            <div id="Class">
-                <div class="equip"></div>
-                <div class="inventory" id="Vault.Class"></div>
+            <div class="Bucket" id="Class">
+                <div class="equipped" id="Equipped.Class"></div>
+                <div class="inventory" id="Inventory.Class"></div>
+                <div class="vault" id="Vault.Class"></div>
             </div>
-            <div id="Ghost">
-                <div class="equip"></div>
-                <div class="inventory" id="Vault.Ghost"></div>
+            <div class="Bucket" id="Ghost">
+                <div class="equipped" id="Equipped.Ghost"></div>
+                <div class="inventory" id="Inventory.Ghost"></div>
+                <div class="vault" id="Vault.Ghost"></div>
             </div>
-            <div id="Ships">
-                <div class="equip"></div>
-                <div class="inventory" id="Vault.Ships"></div>
+            <div class="Bucket" id="Ships">
+                <div class="equipped" id="Equipped.Ships"></div>
+                <div class="inventory" id="Inventory.Ships"></div>
+                <div class="vault" id="Vault.Ships"></div>
             </div>
-            <div id="Vehicle">
-                <div class="equip"></div>
-                <div class="inventory" id="Vault.Vehicle"></div>
+            <div class="Bucket" id="Vehicle">
+                <div class="equipped" id="Equipped.Vehicle"></div>
+                <div class="inventory" id="Inventory.Vehicle"></div>
+                <div class="vault" id="Vault.Vehicle"></div>
             </div>
-            <div id="Emblems">
-                <div class="equip"></div>
-                <div class="inventory" id="Vault.Emblems"></div>
+            <div class="Bucket" id="Emblems">
+                <div class="equipped" id="Equipped.Emblems"></div>
+                <div class="inventory" id="Inventory.Emblems"></div>
+                <div class="vault" id="Vault.Emblems"></div>
             </div>
         </div>
         <div id="itemPanel">
