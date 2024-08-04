@@ -105,6 +105,10 @@ const refreshAccess = async () => {
     })
 }
 
+const showItemInfo = (item) => {
+
+}
+
 // Updates vault variable
 const getVault = async () => {
     // buckets we actually want to read
@@ -214,10 +218,6 @@ const getVault = async () => {
 
         return newItem;
     }
-    
-    const showItemInfo = (item) => {
-
-    }
 
     // Makes an item from the vault into an HTML element
     const itemToHTML = (item) => {
@@ -278,6 +278,7 @@ const getVault = async () => {
     }
 
     // Get character information
+    const response = await (await fetch(baseURL + `${membershipType}/Profile/${membershipID}?components=102,200,201,205,206,300,301,302,304,305,310`, { credentials: 'include', headers: header })).json();
     // Browse to character information variable
     let data = response.Response.characters.data;
     let keys = Object.keys(data);
