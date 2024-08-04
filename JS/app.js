@@ -75,7 +75,7 @@ const refreshManifests = async () => {
             // Download and set all manifests
             for (let i = 0; i < 4; i++) {
                 console.log("Downloading: " + debugMessages[i]);
-                manifests[i] = JSON.parse(await ((await fetch(toDownload[i], { credentials: 'include', headers: header })).json()));
+                manifests[i] = JSON.parse(await ((await fetch(toDownload[i])).json()));
             }
             // Return success
             res(200);
@@ -211,23 +211,67 @@ const getVault = async () => {
 
         return newItem;
     }
+    
+    const showItemInfo = (item) => {
+
+    }
 
     // Makes an item from the vault into an HTML element
     const itemToHTML = (item) => {
+        /*
+        Example Item DIV
+        <div id=[item instance id] title=[item name, rarity, item type] onclick=showItemInfo(item)>
+            *Images layered onto each other
+            <img src=[watermark]>
+            <img src=[icon]>
+
+            <div>
+                *Light level and element icon
+                <img src=[damage type]>
+                [light level]
+            </div>
+        </div>
+        */
         let tierTypes = {
             3: "Common",
             4: "Rare",
             5: "Legendary",
             6: "Exotic" 
         };
+        let damageTypes = {
+            1: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_3385a924fd3ccb92c343ade19f19a370.png",
+            2: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_092d066688b879c807c3b460afdd61e6.png",
+            3: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_2a1773e10968f2d088b97c22b22bba9e.png",
+            4: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_ceb2f6197dccf3958bb31cc783eb97a0.png",
+            5: "https://www.bungie.net/img/misc/missing_icon_d2.png",
+            6: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_530c4c3e7981dc2aefd24fd3293482bf.png",
+            7: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_b2fe51a94f3533f97079dfa0d27a4096.png"
+        }
+        // If the item is an armor piece or not
         let armor = item.types[1] == 1;
+        // Outer final element
         let element = document.createElement("div");
+        // Show item stats on click in inner window
+        element.addEventListener("click", () => {showItemInfo(item)});
+        // Set item id as unique indentifier
         element.id = item.id;
+
+        // push watermark and push icon
+        element.innerHTML = `<img src=${item.watermark}><img src=${item.icon}>`;
+
+        let info = document.createElement("div");
         if(!armor){
+            // Set title of element
             element.title = `${item.name}\n${tierTypes[item.tierType]} ${manifests[4][item.types[2]]}`;
+            // Fill item info information
+            info.innerHTML = `<img src=${damageTypes[item.damageType]}> ${item.light}`;
         }else{
             element.title = `${item.name}\n${tierTypes[item.tierType]} ${manifests[4][item.types[0]]}`;
+            info.innerHTML = `${item.light}`;
         }
+        element.appendChild(info);
+
+        return element;
     }
 
     // Get character information
@@ -304,9 +348,6 @@ const getVault = async () => {
         }
     }
 
-    // Write to json file for testing purposes
-    fs.writeFileSync("./test/test.json", JSON.stringify(db));
-
     // Start pushing html elements
 
     /* All elements where items can be stored
@@ -335,6 +376,7 @@ const getVault = async () => {
                 // Create item div and push to equipped element
                 for(let k = 0; k < character.equipped.length; k++){
                     let item = character.equipped[k];
+                    console.log(item);
                     equippedElement.appendChild(itemToHTML(item));
                 }
             }
