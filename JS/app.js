@@ -75,7 +75,10 @@ const refreshManifests = async () => {
             // Download and set all manifests
             for (let i = 0; i < 4; i++) {
                 console.log("Downloading: " + debugMessages[i]);
-                manifests[i] = JSON.parse(await ((await fetch(toDownload[i])).json()));
+                manifests[i] = await ((await fetch(toDownload[i])).json());
+                console.log(typeof manifests[i]);
+                console.log(manifests[i]);
+                console.log(Object.keys(manifests[i])[0])
             }
             // Return success
             res(200);
