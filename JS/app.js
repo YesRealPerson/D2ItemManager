@@ -293,8 +293,7 @@ const getVault = async () => {
 
     // Get character information
     const response = await (await fetch(baseURL +
-        `${membershipType}/Profile/${membershipID}?components=102,200,201,205,206,300,301,302,304,305,310`,
-        headers: globalReq)).json();
+        `${membershipType}/Profile/${membershipID}?components=102,200,201,205,206,300,301,302,304,305,310`, globalReq)).json();
 
     // Browse to character information variable
     let data = response.Response.characters.data;
