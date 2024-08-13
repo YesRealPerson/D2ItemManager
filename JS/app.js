@@ -40,7 +40,7 @@ let displayName = "";
 // Full account vault/info
 let db = {
     characters: { /* See character schema */ },
-    vault: {/* See item schema */}
+    vault: {/* See item schema */ }
 }
 
 // Maps for specific information 
@@ -103,10 +103,6 @@ const refreshAccess = async () => {
             rej(err);
         }
     })
-}
-
-const showItemInfo = (item) => {
-
 }
 
 // Updates vault variable
@@ -239,7 +235,7 @@ const getVault = async () => {
             3: "Common",
             4: "Rare",
             5: "Legendary",
-            6: "Exotic" 
+            6: "Exotic"
         };
         let damageTypes = {
             1: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_3385a924fd3ccb92c343ade19f19a370.png",
@@ -255,7 +251,7 @@ const getVault = async () => {
         // Outer final element
         let element = document.createElement("div");
         // Show item stats on click in inner window
-        element.addEventListener("click", () => {showItemInfo(item)});
+        element.addEventListener("click", () => { showItemInfo(item) });
         // Set item id as unique indentifier
         element.id = item.id;
 
@@ -263,12 +259,12 @@ const getVault = async () => {
         element.innerHTML = `<img src=${item.watermark}><img src=${item.icon}>`;
 
         let info = document.createElement("div");
-        if(!armor){
+        if (!armor) {
             // Set title of element
             element.title = `${item.name}\n${tierTypes[item.tierType]} ${manifests[4][item.types[2]]}`;
             // Fill item info information
             info.innerHTML = `<img src=${damageTypes[item.damageType]}> ${item.light}`;
-        }else{
+        } else {
             element.title = `${item.name}\n${tierTypes[item.tierType]} ${manifests[4][item.types[0]]}`;
             info.innerHTML = `${item.light}`;
         }
@@ -277,8 +273,29 @@ const getVault = async () => {
         return element;
     }
 
+    // Given two items compares them for sorting
+    const itemCompare = (a, b) => {
+        let lightDiff = a.light - b.light;
+        let rareDiff = a.rarity - b.rarity;
+        // Depending on user setting sorts by rarity first or by power level first
+        if (sort) {
+            if (lightDiff != 0) {
+                return lightDiff;
+            }
+            return rareDiff;
+        } else {
+            if (rareDiff != 0) {
+                return rareDiff;
+            }
+            return lightDiff;
+        }
+    }
+
     // Get character information
-    const response = await (await fetch(baseURL + `${membershipType}/Profile/${membershipID}?components=102,200,201,205,206,300,301,302,304,305,310`, { credentials: 'include', headers: header })).json();
+    const response = await (await fetch(baseURL +
+        `${membershipType}/Profile/${membershipID}?components=102,200,201,205,206,300,301,302,304,305,310`,
+        { credentials: 'include', headers: globalReq })).json();
+
     // Browse to character information variable
     let data = response.Response.characters.data;
     let keys = Object.keys(data);
@@ -295,7 +312,7 @@ const getVault = async () => {
             class: data[key].classType,
             equipped: [],
             loadouts: [],
-            inventory: {},
+            inventory: [],
             emblemSmall: data[key].emblemPath,
             emblemBig: data[key].emblemBackgroundPath
         }
@@ -325,12 +342,14 @@ const getVault = async () => {
                 try {
                     let item = getItem(inventory[j].itemInstanceId, inventory[j].itemHash);
                     item.bucket = buckets[inventory[j].bucketHash];
-                    character.inventory[inventory[j].itemInstanceId] = item
+                    character.inventory.push(item)
                 } catch {
                     console.error(inventory[j].itemInstanceId, "  ", inventory[j].itemHash)
                 }
             }
         }
+        // Sort iventory
+        character.inventory.sort(itemCompare);
 
         // Push character object to DB
         db.characters[key] = character;
@@ -345,12 +364,19 @@ const getVault = async () => {
             try {
                 let item = getItem(vault[i].itemInstanceId, vault[i].itemHash);
                 item.bucket = buckets[vault[i].bucketHash];
-                db.vault[vault[i].itemInstanceId] = item;
+                try {
+                    db.vault[item.bucket].push(item);
+                } catch {
+                    db.vault[item.bucket] = [];
+                    db.vault[item.bucket].push(item);
+                }
             } catch {
                 console.log(vault[i].itemInstanceId, "  ", vault[i].itemHash)
             }
         }
     }
+    // Sort vault
+    db.vault.sort(itemCompare);
 
     // Start pushing html elements
 
@@ -371,19 +397,33 @@ const getVault = async () => {
         element.style.backgroundImage = `url("https://www.bungie.net + ${character.emblemBig}")`
         document.getElementById("characters").appendChild(element);
 
-        for(let j = 0; j < bucketElements.length; j++){
-            let current = bucketElements[j];
+        for (let j = 0; j < bucketElements.length; j++) {
+            let inventories = bucketElements[j].children;
             // If this is the first character (most recently logged in) populate equipped buckets
-            if(i == 0){
-                let equippedElement = current.firstElementChild;
+            if (i == 0) {
+                let equippedElement = inventories[0];
                 equippedElement.innerHTML = "";
                 // Create item div and push to equipped element
-                for(let k = 0; k < character.equipped.length; k++){
+                for (let k = 0; k < character.equipped.length; k++) {
                     let item = character.equipped[k];
-                    console.log(item);
                     equippedElement.appendChild(itemToHTML(item));
                 }
             }
+
+            // Fill character inventory bucket
+            // Character inventory element
+            let characterElement = inventories[1];
+            for (let k = 0; k < character.inventory.length; k++) {
+                let item = character.inventory[k];
+                characterElement.appendChild(itemToHTML(item));
+            }
+
+            // Fill vault bucket
+            // let vaultElement = inventories[2];
+            // for (let k = 0; k < character.inventory.length; k++) {
+            //     let item = character.inventory[k];
+            //     vaultElement.appendChild(itemToHTML(item));
+            // }
         }
     }
 }
