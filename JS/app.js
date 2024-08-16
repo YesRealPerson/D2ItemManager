@@ -118,8 +118,8 @@ const getVault = async () => {
         20886954: "leg",
         1585787867: "class",
         3284755031: "subclass",
-        284967655: "Ships",
-        4023194814: "Ghosts",
+        284967655: "ships",
+        4023194814: "ghosts",
         2025709351: "vehicle",
     }
 
@@ -309,9 +309,9 @@ const getVault = async () => {
         let character = {
             id: key,
             class: data[key].classType,
-            equipped: [],
+            equipped: {},
             loadouts: [],
-            inventory: [],
+            inventory: {},
             emblemSmall: data[key].emblemPath,
             emblemBig: data[key].emblemBackgroundPath
         }
@@ -323,7 +323,12 @@ const getVault = async () => {
                 try {
                     let item = getItem(equipped[j].itemInstanceId, equipped[j].itemHash);
                     item.bucket = buckets[equipped[j].bucketHash];
-                    character.equipped.push(item)
+                    try {
+                        character.equipped[item.bucket].push(item);
+                    } catch {
+                        character.equipped[item.bucket] = [];
+                        character.equipped[item.bucket].push(item);
+                    }
                 } catch {
                     console.error(inventory[j].itemInstanceId, "  ", inventory[j].itemHash)
                 }
@@ -341,13 +346,22 @@ const getVault = async () => {
                 try {
                     let item = getItem(inventory[j].itemInstanceId, inventory[j].itemHash);
                     item.bucket = buckets[inventory[j].bucketHash];
-                    character.inventory.push(item)
+                    try {
+                        character.inventory[item.bucket].push(item);
+                    } catch {
+                        character.inventory[item.bucket] = [];
+                        character.inventory[item.bucket].push(item);
+                    }
                 } catch {
                     console.error(inventory[j].itemInstanceId, "  ", inventory[j].itemHash)
                 }
             }
         }
-        // Sort iventory
+        // Sort iventories
+        let inventoryKeys = Object.keys(character.inventory);
+        for(let j = 0; j < inventoryKeys.length; j++){
+            character.inventory[inventoryKeys[j]].sort(itemCompare);
+        }
         character.inventory.sort(itemCompare);
 
         // Push character object to DB
@@ -375,7 +389,10 @@ const getVault = async () => {
         }
     }
     // Sort vault
-    db.vault.sort(itemCompare);
+    let vaultKeys = Object.keys(db.vault);
+    for (let i = 0; i < vaultKeys.length; i++) {
+        db.vault[vaultKeys[i]].sort(itemCompare);
+    }
 
     // Start pushing html elements
 
@@ -387,6 +404,7 @@ const getVault = async () => {
     */
     let bucketElements = document.getElementsByClassName("bucket");
 
+    // Loop through each character, times is sorted based on which character was last logged into
     for (let i = 0; i < times.length; i++) {
         let character = db.characters[id];
         // Character zone headers
@@ -398,31 +416,42 @@ const getVault = async () => {
 
         for (let j = 0; j < bucketElements.length; j++) {
             let inventories = bucketElements[j].children;
-            // If this is the first character (most recently logged in) populate equipped buckets
+            let bucketName = bucketElements[j].id;
+            // If this is the first character (most recently logged in) populate equipped and vault buckets since they only need to be populated once
             if (i == 0) {
                 let equippedElement = inventories[0];
                 equippedElement.innerHTML = "";
-                // Create item div and push to equipped element
-                for (let k = 0; k < character.equipped.length; k++) {
-                    let item = character.equipped[k];
-                    equippedElement.appendChild(itemToHTML(item));
+                try {
+                    equippedElement.appendChild(itemToHTML(character.equipped[bucketName][0]))
+                } catch {
+                    console.log(`bucket id ${bucketName} does not exist in character ${id} equipped!`)
+                }
+
+                // Fill vault bucket
+                let vaultElement = inventories[2];
+                vaultElement.innerHTML = "";
+                try {
+                    for (let k = 0; k < db.vault[bucketName].length; k++) {
+                        let item = db.vault[bucketName][k];
+                        vaultElement.appendChild(itemToHTML(item));
+                    }
+                } catch {
+                    console.log(`bucket id ${bucketName} does not exist in vault!`)
                 }
             }
 
             // Fill character inventory bucket
             // Character inventory element
             let characterElement = inventories[1];
-            for (let k = 0; k < character.inventory.length; k++) {
-                let item = character.inventory[k];
-                characterElement.appendChild(itemToHTML(item));
+            characterElement.innerHTML = "";
+            try {
+                for (let k = 0; k < character.inventory[bucketName].length; k++) {
+                    let item = character.inventory[k];
+                    characterElement.appendChild(itemToHTML(item));
+                }
+            } catch {
+                console.log(`bucket id ${bucketName} does not exist in character ${id} inventory!`)
             }
-
-            // Fill vault bucket
-            // let vaultElement = inventories[2];
-            // for (let k = 0; k < character.inventory.length; k++) {
-            //     let item = character.inventory[k];
-            //     vaultElement.appendChild(itemToHTML(item));
-            // }
         }
     }
 }
