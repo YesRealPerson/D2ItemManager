@@ -71,11 +71,15 @@ const refreshManifests = async () => {
 
             // Check if manifests have been updated
             let previousManifests = JSON.parse(localStorage.getItem("previousManifests"));
-            let downloadBool = [];
+            let downloadBool = [false, false, false, false];
+            // If previous manifests exist in localstorage check if the download URLs are the same, else we need to download all manifests
             if (previousManifests != null) {
                 for (let i = 0; i < 4; i++) {
-                    downloadBool.push(previousManifests[i] == toDownload[i]);
+                    //check if the download URLs are the same, if they aren't they must be redownloaded
+                    downloadBool[i] = previousManifests[i] != toDownload[i];
                 }
+            }else{
+                downloadBool = [true, true, true, true];
             }
 
             // Messages to print because debug
