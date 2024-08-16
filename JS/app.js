@@ -69,17 +69,41 @@ const refreshManifests = async () => {
             // Manifest endpoints we want to download
             let toDownload = ['https://www.bungie.net' + data.DestinyInventoryItemDefinition, 'https://www.bungie.net' + data.DestinyInventoryBucketDefinition, 'https://www.bungie.net' + data.DestinyStatDefinition, 'https://www.bungie.net' + data.DestinySandboxPerkDefinition, 'https://www.bungie.net' + data.DestinyItemCategoryDefinition];
 
+            // Check if manifests have been updated
+            let previousManifests = JSON.parse(localStorage.getItem("previousManifests"));
+            let downloadBool = [];
+            if (previousManifests != null) {
+                for (let i = 0; i < 4; i++) {
+                    downloadBool.push(previousManifests[i] == toDownload[i]);
+                }
+            }
+
             // Messages to print because debug
             let debugMessages = ["Inventory Item Def", "Inventory Bucket Def", "Stat Def", "Perk Def", "Item Category Def"];
 
             // Download and set all manifests
-            for (let i = 0; i < 4; i++) {
-                console.log("Downloading: " + debugMessages[i]);
-                manifests[i] = await ((await fetch(toDownload[i])).json());
-                console.log(typeof manifests[i]);
-                console.log(manifests[i]);
-                console.log(Object.keys(manifests[i])[0])
+            let localManifests = [{}, {}, {}, {}];
+            try{
+                localManifests = JSON.parse(localStorage.getItem("manifests"));
+            }catch{
+                console.log("No manifests in localstorage!");
             }
+            for (let i = 0; i < 4; i++) {
+                // Manifest has been updated since last downloaded
+                if (downloadBool[i]) {
+                    console.log("Downloading: " + debugMessages[i]);
+                    manifests[i] = await ((await fetch(toDownload[i])).json());
+                    console.log("Downloaded " + debugMessages[i]);
+                }
+                // Manifest is the same, pull from local storage
+                else {
+                
+                    console.log(`Pulling ${debugMessages[i]} from local storage`);
+                    manifests[i] = localManifests[i];
+                }
+            }
+            localStorage.setItem("previousManifests", JSON.stringify(toDownload));
+            localStorage.setItem("manifests", JSON.stringify(manifests));
             // Return success
             res(200);
         }
@@ -359,10 +383,9 @@ const getVault = async () => {
         }
         // Sort iventories
         let inventoryKeys = Object.keys(character.inventory);
-        for(let j = 0; j < inventoryKeys.length; j++){
+        for (let j = 0; j < inventoryKeys.length; j++) {
             character.inventory[inventoryKeys[j]].sort(itemCompare);
         }
-        character.inventory.sort(itemCompare);
 
         // Push character object to DB
         db.characters[key] = character;
