@@ -7,6 +7,12 @@ const accID = localStorage.getItem("accountID");
 // Base url for API requests
 const baseURL = "https://www.bungie.net/platform/Destiny2/";
 
+const dexie = new Dexie("test");
+
+dexie.version(1).stores({
+    manifests: `DBNAME`
+});
+
 /*
 manifests
 0, Inventory Item
@@ -52,6 +58,24 @@ let classTypes = ["Titan", "Hunter", "Warlock"]
 // Rarity maps
 let rarity = ["What the fuck is this?", "Currency", "Common", "Uncommon", "Rare", "Legendary", "Exotic"]
 
+// Indexed DB creator
+const indb = (dbName, version) => {
+    return new Promise((res, rej) => {
+        const request = indexedDB.open(dbName, version);
+        request.onsuccess = e => {
+            res(e.target.result);
+        };
+
+        request.onerror = e => {
+            console.log(`indexedDB error: ${e.target.errorCode}`);
+        };
+
+        request.onupgradeneeded = e => {
+            console.log("Upgrade function called but I don't think I really care?");
+        };
+    })
+}
+
 // Fetches all manifests from Bungie.net
 const refreshManifests = async () => {
     return new Promise(async (res, rej) => {
@@ -69,16 +93,16 @@ const refreshManifests = async () => {
             // Manifest endpoints we want to download
             let toDownload = ['https://www.bungie.net' + data.DestinyInventoryItemDefinition, 'https://www.bungie.net' + data.DestinyInventoryBucketDefinition, 'https://www.bungie.net' + data.DestinyStatDefinition, 'https://www.bungie.net' + data.DestinySandboxPerkDefinition, 'https://www.bungie.net' + data.DestinyItemCategoryDefinition];
 
-            // Check if manifests have been updated
+            // Check for previous manifest names stored in localStorage
             let previousManifests = JSON.parse(localStorage.getItem("previousManifests"));
-            let downloadBool = [false, false, false, false];
+            let downloadBool = [false, false, false, false, false];
             // If previous manifests exist in localstorage check if the download URLs are the same, else we need to download all manifests
             if (previousManifests != null) {
                 for (let i = 0; i < 4; i++) {
                     //check if the download URLs are the same, if they aren't they must be redownloaded
                     downloadBool[i] = previousManifests[i] != toDownload[i];
                 }
-            }else{
+            } else {
                 downloadBool = [true, true, true, true];
             }
 
@@ -86,28 +110,31 @@ const refreshManifests = async () => {
             let debugMessages = ["Inventory Item Def", "Inventory Bucket Def", "Stat Def", "Perk Def", "Item Category Def"];
 
             // Download and set all manifests
-            let localManifests = [{}, {}, {}, {}];
-            try{
-                localManifests = JSON.parse(localStorage.getItem("manifests"));
-            }catch{
-                console.log("No manifests in localstorage!");
-            }
-            for (let i = 0; i < 4; i++) {
-                // Manifest has been updated since last downloaded
-                if (downloadBool[i]) {
-                    console.log("Downloading: " + debugMessages[i]);
-                    manifests[i] = await ((await fetch(toDownload[i])).json());
-                    console.log("Downloaded " + debugMessages[i]);
+            const manifestKeys = ["inventoryItemDef", "bucketDef", "statDef", "perkDef", "itemCategoryDef"];
+
+            for (let i = 0; i < 5; i++) {
+                // If the file does not need to be downloaded, populate the information with local data
+                let key = manifestKeys[i];
+                let localManifest = await dexie.manifests.get(key);
+                if (!downloadBool[i] && localManifest /* if the manifest is not undefinied, no idea when this would happen but seems like a good thing to account for */) {
+                    console.log("Manifest exists in local DB")
+                    manifests[i] = localManifest;
                 }
-                // Manifest is the same, pull from local storage
+                // The file must be downloaded 
                 else {
-                
-                    console.log(`Pulling ${debugMessages[i]} from local storage`);
-                    manifests[i] = localManifests[i];
+                    // Download the manifest 
+                    console.log("Downloading: " + debugMessages[i]);
+                    let data = await ((await fetch(toDownload[i])).json());
+                    data.DBNAME = key;
+                    console.log("Downloaded " + debugMessages[i]);
+
+                    // Put the data into IndexedDB
+                    await db.manifests.put(data);
+
+                    // Assign data to manifest location
+                    manifests[i] = data;
                 }
             }
-            localStorage.setItem("previousManifests", JSON.stringify(toDownload));
-            localStorage.setItem("manifests", JSON.stringify(manifests));
             // Return success
             res(200);
         }
