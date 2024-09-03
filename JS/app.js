@@ -139,7 +139,7 @@ const refreshManifests = async () => {
             }
 
             // Set local storage to match currently downloaded
-            localStorage.setItem("previousManifests", toDownload);
+            localStorage.setItem("previousManifests", JSON.stringify(toDownload));
 
             // Return success
             res(200);
@@ -471,7 +471,7 @@ const getVault = async () => {
         let character = db.characters[id]
         let element = document.createElement("div");
         element.innerText = classTypes[character.class];
-        element.style.backgroundImage = `url("https://www.bungie.net + ${character.emblemBig}")`
+        element.style.backgroundImage = `url("https://www.bungie.net${character.emblemBig}")`
         document.getElementById("characters").appendChild(element);
 
         for (let j = 0; j < bucketElements.length; j++) {
@@ -483,8 +483,8 @@ const getVault = async () => {
                 equippedElement.innerHTML = "";
                 try {
                     equippedElement.appendChild(itemToHTML(character.equipped[bucketName][0]))
-                } catch {
-                    console.log(`bucket id ${bucketName} does not exist in character ${id} equipped!`)
+                } catch (err){
+                    console.log(`bucket id ${bucketName} does not exist in character ${id} equipped!\nError: ${err}`)
                 }
 
                 // Fill vault bucket
@@ -495,8 +495,8 @@ const getVault = async () => {
                         let item = db.vault[bucketName][k];
                         vaultElement.appendChild(itemToHTML(item));
                     }
-                } catch {
-                    console.log(`bucket id ${bucketName} does not exist in vault!`)
+                } catch (err){
+                    console.log(`bucket id ${bucketName} does not exist in vault!\nError: ${err}`)
                 }
             }
 
@@ -509,8 +509,8 @@ const getVault = async () => {
                     let item = character.inventory[k];
                     characterElement.appendChild(itemToHTML(item));
                 }
-            } catch {
-                console.log(`bucket id ${bucketName} does not exist in character ${id} inventory!`)
+            } catch (err){
+                console.log(`bucket id ${bucketName} does not exist in character ${id} inventory!\nError: ${err}`)
             }
         }
     }
