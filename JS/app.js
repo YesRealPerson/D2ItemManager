@@ -1,6 +1,8 @@
 // OAuth Access & Refresh Token
 let access = localStorage.getItem("access");
 let refresh = localStorage.getItem("refresh");
+// Last time OAuth refreshed
+let refreshed = Date.now();
 // Base account ID
 const accID = localStorage.getItem("accountID");
 
@@ -135,6 +137,10 @@ const refreshManifests = async () => {
                     manifests[i] = data;
                 }
             }
+
+            // Set local storage to match currently downloaded
+            localStorage.setItem("previousManifests", toDownload);
+
             // Return success
             res(200);
         }
@@ -459,10 +465,10 @@ const getVault = async () => {
     let bucketElements = document.getElementsByClassName("bucket");
 
     // Loop through each character, times is sorted based on which character was last logged into
-    for (let i = 0; i < times.length; i++) {
-        let character = db.characters[id];
+    for (let i = 0; i < times.length; i++) {;
         // Character zone headers
         let id = times[i].id;
+        let character = db.characters[id]
         let element = document.createElement("div");
         element.innerText = classTypes[character.class];
         element.style.backgroundImage = `url("https://www.bungie.net + ${character.emblemBig}")`
