@@ -129,7 +129,7 @@ const refreshManifests = async () => {
                     console.log("Downloaded " + debugMessages[i]);
 
                     // Put the data into IndexedDB
-                    await db.manifests.put(data);
+                    await dexie.manifests.put(data);
 
                     // Assign data to manifest location
                     manifests[i] = data;
