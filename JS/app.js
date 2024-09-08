@@ -169,7 +169,7 @@ const refreshAccess = async () => {
 // Updates vault variable
 const getVault = async () => {
     // buckets we actually want to read
-    let buckets = {
+    const buckets = {
         1498876634: "kinetic",
         2465295065: "energy",
         953998645: "power",
@@ -201,6 +201,7 @@ const getVault = async () => {
         // Basic Information from the manifest
         let newItem = {
             id: id,
+            bucketHash: itemDef.inventory.bucketTypeHash,
             name: itemDef.displayProperties.name,
             flavor: itemDef.flavorText,
             icon: itemDef.displayProperties.icon,
@@ -492,8 +493,7 @@ const getVault = async () => {
                 vaultElement.innerHTML = "";
                 try {
                     for (let k = 0; k < db.vault[bucketName].length; k++) {
-                        let item = db.vault[bucketName][k];
-                        vaultElement.appendChild(itemToHTML(item));
+                        vaultElement.appendChild(itemToHTML(db.vault[bucketName][k]));
                     }
                 } catch (err){
                     console.log(`bucket id ${bucketName} does not exist in vault!\nError: ${err}`)
@@ -506,8 +506,7 @@ const getVault = async () => {
             characterElement.innerHTML = "";
             try {
                 for (let k = 0; k < character.inventory[bucketName].length; k++) {
-                    let item = character.inventory[k];
-                    characterElement.appendChild(itemToHTML(item));
+                    characterElement.appendChild(itemToHTML(character.inventory[k]));
                 }
             } catch (err){
                 console.log(`bucket id ${bucketName} does not exist in character ${id} inventory!\nError: ${err}`)
