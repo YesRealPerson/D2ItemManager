@@ -189,7 +189,7 @@ const refreshAccess = async () => {
 }
 
 // Get item information by instance id
-const getItem = (id, hash) => {
+const getItem = (id, hash, response) => {
     // console.log(hash, " ", id);
     let data = response.Response.itemComponents;
     let instances = data.instances.data[id];
@@ -540,7 +540,7 @@ const getVault = async () => {
         for (let j = 0; j < equipped.length; j++) {
             if (equipped[j].itemInstanceId != undefined && buckets[equipped[j].bucketHash] != undefined) {
                 try {
-                    let item = getItem(equipped[j].itemInstanceId, equipped[j].itemHash);
+                    let item = getItem(equipped[j].itemInstanceId, equipped[j].itemHash, response);
                     item.bucket = buckets[equipped[j].bucketHash];
                     try {
                         character.equipped[item.bucket].push(item);
@@ -563,7 +563,7 @@ const getVault = async () => {
         for (let j = 0; j < inventory.length; j++) {
             if (inventory[j].itemInstanceId != undefined && buckets[inventory[j].bucketHash] != undefined) {
                 try {
-                    let item = getItem(inventory[j].itemInstanceId, inventory[j].itemHash);
+                    let item = getItem(inventory[j].itemInstanceId, inventory[j].itemHash, response);
                     item.bucket = buckets[inventory[j].bucketHash];
                     try {
                         character.inventory[item.bucket].push(item);
@@ -593,7 +593,7 @@ const getVault = async () => {
     for (let i = 0; i < vault.length; i++) {
         if (vault[i].itemInstanceId != undefined) {
             try {
-                let item = getItem(vault[i].itemInstanceId, vault[i].itemHash);
+                let item = getItem(vault[i].itemInstanceId, vault[i].itemHash, response);
                 item.bucket = buckets[item.bucket];
                 try {
                     db.vault[item.bucket].push(item);
