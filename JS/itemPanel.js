@@ -112,7 +112,7 @@ const showItemInfo = async (item) => {
     }
     let armor = item.type[1] != 1;;
 
-    document.getElementById("screenshot").setAttribute("src", screenshot);
+    document.getElementById("screenshot").setAttribute("src", "https://bungie.net"+screenshot);
     document.getElementById("screenshot").setAttribute("title", name + "<br>" + rarity);
 
     document.getElementById("panelName").innerHTML = name;
@@ -131,8 +131,8 @@ const showItemInfo = async (item) => {
     //     }
     //     flavor.appendChild(tags);
     // }
-    document.getElementById("AddTagButton").setAttribute("onclick",`addTag("${bungieid}", "${instance}")`);
-    document.getElementById("RemoveTagButton").setAttribute("onclick",`delTag("${bungieid}", "${instance}")`);
+    // document.getElementById("AddTagButton").setAttribute("onclick",`addTag("${bungieid}", "${instance}")`);
+    // document.getElementById("RemoveTagButton").setAttribute("onclick",`delTag("${bungieid}", "${instance}")`);
 
     let perkElement = document.getElementById("perks");
     perkElement.innerHTML = "";

@@ -357,7 +357,6 @@ const getVault = async () => {
         darken.className = "darken"
         darken.style.pointerEvents = "none";
         element.appendChild(darken);
-        element.onclick = showItemInfo(item);
         return element;
     }
 
