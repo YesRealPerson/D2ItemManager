@@ -1,167 +1,173 @@
 <!DOCTYPE html>
 <html lang="en-US">
-	<head>
-		<title>Confluxes Item Manager</title>
-        <!-- Libraries to abuse -->
+
+<head>
+    <title>Confluxes Item Manager</title>
+    <!-- Libraries to abuse -->
 
 
-        <!-- Dexie Indexed DB -->
-        <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
+    <!-- Dexie Indexed DB -->
+    <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
 
-        <!-- JQuery -->
-        <script src="https://code.jquery.com/jquery-3.6.3.js"></script>
-        <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
-        <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
-        <script>
-            $(function () {
-                $(document).tooltip({
-                    show: { duration: 250 },
-                    hide: { duration: 250 },
-                    content: function () {
-                        return $(this).attr('title');
-                    }
-                });
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.3.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <script>
+        $(function () {
+            $(document).tooltip({
+                show: { duration: 250 },
+                hide: { duration: 250 },
+                content: function () {
+                    return $(this).attr('title');
+                }
             });
-        </script>
+        });
+        $('img').on("error", function () {
+            $(this).attr('src', '/IMG/blank.png');
+        });
+    </script>
 
-        <!-- My stuff -->
-        <script src="./JS/windows.js" defer></script>
-        <script src="./JS/notification.js" defer></script>
-        <script src="./JS/app.js" defer></script>
-        <script src="./JS/itemPanel.js" defer></script>
-        <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
-        <link rel="stylesheet" href="./CSS/app.css">
-    </head>
-    <body>
-        <div id="top">
-            <div id=characters></div>
-            <input type="text" id="searchBox" autocomplete="off" placeholder="Search" oninput="search(this.value);">
-            <button class="selector menu" id="help" onclick="showHelp()">Help</button>
-            <button class="selector menu" id="settings" onclick="showSettings()">Settings</button>
-            <button class="selector menu" id="refresh" onclick="getVault()">Refresh</button>
+    <!-- My stuff -->
+    <script src="./JS/windows.js" defer></script>
+    <script src="./JS/notification.js" defer></script>
+    <script src="./JS/app.js" defer></script>
+    <script src="./JS/itemPanel.js" defer></script>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <link rel="stylesheet" href="./CSS/app.css">
+</head>
+
+<body>
+    <div id="top">
+        <div id=characters></div>
+        <input type="text" id="searchBox" autocomplete="off" placeholder="Search" oninput="search(this.value);">
+        <button class="selector menu" id="help" onclick="showHelp()">Help</button>
+        <button class="selector menu" id="settings" onclick="showSettings()">Settings</button>
+        <button class="selector menu" id="refresh" onclick="getVault()">Refresh</button>
+    </div>
+    <div id="status"></div>
+    <div id="vault">
+        <div class="bucket" id="subclass">
+            <div class="equipped" id="Equipped.Sublass"></div>
+            <div class="inventory" id="Inventory.Subclass"></div>
+            <div class="vault" id="Vault.Subclass"></div>
         </div>
-        <div id="status"></div>
-        <div id="vault">
-            <div class="bucket" id="subclass">
-                <div class="equipped" id="Equipped.Sublass"></div>
-                <div class="inventory" id="Inventory.Subclass"></div>
-                <div class="vault" id="Vault.Subclass"></div>
-            </div>
-            <div class="bucket" id="kinetic">
-                <div class="equipped" id="Equipped.Kinetic"></div>
-                <div class="inventory" id="Inventory.Kinetic"></div>
-                <div class="vault" id="Vault.Kinetic"></div>
-            </div>
-            <div class="bucket" id="energy">
-                <div class="equipped" id="Equipped.Energy"></div>
-                <div class="inventory" id="Inventory.Energy"></div>
-                <div class="vault" id="Vault.Energy"></div>
-            </div>
-            <div class="bucket" id="power">
-                <div class="equipped" id="Equipped.Power"></div>
-                <div class="inventory" id="Inventory.Power"></div>
-                <div class="vault" id="Vault.Power"></div>
-            </div>
-            <div class="bucket" id="helmet">
-                <div class="equipped" id="Equipped.Helmet"></div>
-                <div class="inventory" id="Inventory.Helmet"></div>
-                <div class="vault" id="Vault.Helmet"></div>
-            </div>
-            <div class="bucket" id="gauntlets">
-                <div class="equipped" id="Equipped.Gauntlets"></div>
-                <div class="inventory" id="Inventory.Gauntlets"></div>
-                <div class="vault" id="Vault.Gauntlets"></div>
-            </div>
-            <div class="bucket" id="chest">
-                <div class="equipped" id="Equipped.Chest"></div>
-                <div class="inventory" id="Inventory.Chest"></div>
-                <div class="vault" id="Vault.Chest"></div>
-            </div>
-            <div class="bucket" id="leg">
-                <div class="equipped" id="Equipped.Leg"></div>
-                <div class="inventory" id="Inventory.Leg"></div>
-                <div class="vault" id="Vault.Leg"></div>
-            </div>
-            <div class="bucket" id="class">
-                <div class="equipped" id="Equipped.Class"></div>
-                <div class="inventory" id="Inventory.Class"></div>
-                <div class="vault" id="Vault.Class"></div>
-            </div>
-            <div class="bucket" id="ghosts">
-                <div class="equipped" id="Equipped.Ghost"></div>
-                <div class="inventory" id="Inventory.Ghost"></div>
-                <div class="vault" id="Vault.Ghost"></div>
-            </div>
-            <div class="bucket" id="ships">
-                <div class="equipped" id="Equipped.Ships"></div>
-                <div class="inventory" id="Inventory.Ships"></div>
-                <div class="vault" id="Vault.Ships"></div>
-            </div>
-            <div class="bucket" id="vehicle">
-                <div class="equipped" id="Equipped.Vehicle"></div>
-                <div class="inventory" id="Inventory.Vehicle"></div>
-                <div class="vault" id="Vault.Vehicle"></div>
-            </div>
+        <div class="bucket" id="kinetic">
+            <div class="equipped" id="Equipped.Kinetic"></div>
+            <div class="inventory" id="Inventory.Kinetic"></div>
+            <div class="vault" id="Vault.Kinetic"></div>
         </div>
-        <div id="itemPanel">
-            <p>
-                Item Infomation Panel
-            </p>
-            <div id="itemButton">
-                <button class="selector tagButton" id="AddTagButton">
-                    Add Tag
-                </button>
-                <button class="selector tagButton" id="RemoveTagButton">
-                    Remove Tag
-                </button>
-            </div>
-            <div id="nameType">
-                <span id="type"></span>
-                <span id="panelName"></span>
-            </div>
-            <div id="flavor"></div>
-            <img id="screenshot">
-            <div id="perks"></div>
-            <div id="stats">
-                <div id="statName"></div>
-                <div id="statValue"></div>
-                <div id="valueBar"></div>
-            </div>
+        <div class="bucket" id="energy">
+            <div class="equipped" id="Equipped.Energy"></div>
+            <div class="inventory" id="Inventory.Energy"></div>
+            <div class="vault" id="Vault.Energy"></div>
         </div>
-        <div id="settingsPanel" class="window">
-            <div>
-                <h3>Settings</h3>
-                <p>Press 'ESC' to close this window.<br> Hover over a setting to see it's current value</p>
-                <button id="sortToggle" title="Sorting by rarity" onclick="toggleSort();">Sort vault by power</button>
-                <br>
-                <button id="colorToggle" title="No color" onclick="toggleColor();">Show color on stat bars</button>
-            </div>
+        <div class="bucket" id="power">
+            <div class="equipped" id="Equipped.Power"></div>
+            <div class="inventory" id="Inventory.Power"></div>
+            <div class="vault" id="Vault.Power"></div>
         </div>
-        <div id="helpPanel" class="window">
-            <div>
-                <h3>Help</h3>
-                <p style="margin-top: 10px; margin-bottom: 10px;">Press 'ESC' to close this window.</p>
-                <p>How to transfer items</p>
-                <li> Drag and drop items to the desired location (hover for more details)</li>
-                <p>Item Information Panel</p>
-                <li>Click on any item to view information about it</li>
-                <li>Hover over perks to read it's name and description</li>
-                <li>Press 'H' to hide the panel</li>
-                <li>Press 'R' to reset the location of the panel</li>
-                <p>How to use search bar</p>
-                <li>Syntax (Parameter):(Query)</li>
-                <li>Separate search parameters with commas</li>
-                <p>Available parameters</p>
-                <li>name: search by name of item</li>
-                <li>type: general type of item (Kinetic, Special, Power, Helmet, Gauntlets, etc)</li>
-                <li>ammo: ammo type (i.e heavy)</li>
-                <li>damagetype: type of outgoing damage (i.e arc)</li>
-                <li>light: light level (=1600, &lt;1600 &gt;1600)</li>
-                <li>rarity: rarity of item (i.e legendary)</li>
-                <li>family: type of item (hand cannon, lfr, etc)</li>
-                <li>breaker: barrier, unstopable, or overload</li>
-            </div>
+        <div class="bucket" id="helmet">
+            <div class="equipped" id="Equipped.Helmet"></div>
+            <div class="inventory" id="Inventory.Helmet"></div>
+            <div class="vault" id="Vault.Helmet"></div>
         </div>
-        <div id="hidden" style="visibility: hidden; height: 0px; width: 0px; overflow: hidden;"></div>
-    </body>
+        <div class="bucket" id="gauntlets">
+            <div class="equipped" id="Equipped.Gauntlets"></div>
+            <div class="inventory" id="Inventory.Gauntlets"></div>
+            <div class="vault" id="Vault.Gauntlets"></div>
+        </div>
+        <div class="bucket" id="chest">
+            <div class="equipped" id="Equipped.Chest"></div>
+            <div class="inventory" id="Inventory.Chest"></div>
+            <div class="vault" id="Vault.Chest"></div>
+        </div>
+        <div class="bucket" id="leg">
+            <div class="equipped" id="Equipped.Leg"></div>
+            <div class="inventory" id="Inventory.Leg"></div>
+            <div class="vault" id="Vault.Leg"></div>
+        </div>
+        <div class="bucket" id="class">
+            <div class="equipped" id="Equipped.Class"></div>
+            <div class="inventory" id="Inventory.Class"></div>
+            <div class="vault" id="Vault.Class"></div>
+        </div>
+        <div class="bucket" id="ghosts">
+            <div class="equipped" id="Equipped.Ghost"></div>
+            <div class="inventory" id="Inventory.Ghost"></div>
+            <div class="vault" id="Vault.Ghost"></div>
+        </div>
+        <div class="bucket" id="ships">
+            <div class="equipped" id="Equipped.Ships"></div>
+            <div class="inventory" id="Inventory.Ships"></div>
+            <div class="vault" id="Vault.Ships"></div>
+        </div>
+        <div class="bucket" id="vehicle">
+            <div class="equipped" id="Equipped.Vehicle"></div>
+            <div class="inventory" id="Inventory.Vehicle"></div>
+            <div class="vault" id="Vault.Vehicle"></div>
+        </div>
+    </div>
+    <div id="itemPanel">
+        <p>
+            Item Infomation Panel
+        </p>
+        <div id="itemButton">
+            <button class="selector tagButton" id="AddTagButton">
+                Add Tag
+            </button>
+            <button class="selector tagButton" id="RemoveTagButton">
+                Remove Tag
+            </button>
+        </div>
+        <div id="nameType">
+            <span id="type"></span>
+            <span id="panelName"></span>
+        </div>
+        <div id="flavor"></div>
+        <img id="screenshot">
+        <div id="perks"></div>
+        <div id="stats">
+            <div id="statName"></div>
+            <div id="statValue"></div>
+            <div id="valueBar"></div>
+        </div>
+    </div>
+    <div id="settingsPanel" class="window">
+        <div>
+            <h3>Settings</h3>
+            <p>Press 'ESC' to close this window.<br> Hover over a setting to see it's current value</p>
+            <button id="sortToggle" title="Sorting by rarity" onclick="toggleSort();">Sort vault by power</button>
+            <br>
+            <button id="colorToggle" title="No color" onclick="toggleColor();">Show color on stat bars</button>
+        </div>
+    </div>
+    <div id="helpPanel" class="window">
+        <div>
+            <h3>Help</h3>
+            <p style="margin-top: 10px; margin-bottom: 10px;">Press 'ESC' to close this window.</p>
+            <p>How to transfer items</p>
+            <li> Drag and drop items to the desired location (hover for more details)</li>
+            <p>Item Information Panel</p>
+            <li>Click on any item to view information about it</li>
+            <li>Hover over perks to read it's name and description</li>
+            <li>Press 'H' to hide the panel</li>
+            <li>Press 'R' to reset the location of the panel</li>
+            <p>How to use search bar</p>
+            <li>Syntax (Parameter):(Query)</li>
+            <li>Separate search parameters with commas</li>
+            <p>Available parameters</p>
+            <li>name: search by name of item</li>
+            <li>type: general type of item (Kinetic, Special, Power, Helmet, Gauntlets, etc)</li>
+            <li>ammo: ammo type (i.e heavy)</li>
+            <li>damagetype: type of outgoing damage (i.e arc)</li>
+            <li>light: light level (=1600, &lt;1600 &gt;1600)</li>
+            <li>rarity: rarity of item (i.e legendary)</li>
+            <li>family: type of item (hand cannon, lfr, etc)</li>
+            <li>breaker: barrier, unstopable, or overload</li>
+        </div>
+    </div>
+    <div id="hidden" style="visibility: hidden; height: 0px; width: 0px; overflow: hidden;"></div>
+</body>
+
 </html>

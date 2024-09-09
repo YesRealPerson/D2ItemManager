@@ -70,10 +70,10 @@ svg
 {
 	background-repeat:no-repeat;
 	background-size:contain;
-	height:44px;
+	height:32px;
 	padding-left:90px;
 	text-align:right;
-	width:210px;
+	width: 198px;
 }
 
 .darken
@@ -305,6 +305,9 @@ svg
 	background-color:#323232;
 	color:#FFF;
 	font-size:15px;
+	display: flex;
+	justify-content: right;
+	align-items: center;
 }
 
 #characters
