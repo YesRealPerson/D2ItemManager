@@ -440,7 +440,7 @@ const onDrop = async (id) => {
             // database > characters > character id > inventory > bucket name > index
             let item = db.characters[transferData[3]].inventory[id.split(".")[1]][transferData[5]]
             console.log(`db.characters.${transferData[3]}.inventory.${id.split(".")[1]}.${transferData[5]}`);
-            delete db.characters[transferData[3]].inventory[id.split(".")[1]][transferData[5]]
+            db.characters[transferData[3]].inventory[id.split(".")[1]] = (db.characters[transferData[3]].inventory[id.split(".")[1]].slice(0, transferData[5])).concat(db.characters[transferData[3]].inventory[id.split(".")[1]].slice(transferData[5]+1))
             // Push to correct vault bucket
             db.vault[id.split(".")[1]].push(item);
         }else{
@@ -448,7 +448,7 @@ const onDrop = async (id) => {
             // Database > Vault > Bucket Name > Index
             let item = db.vault[id.split(".")[1]][transferData[5]]
             console.log(`db.vault.${id.split(".")[1]}.${transferData[5]}`);
-            delete db.vault[id.split(".")[1]][transferData[5]]
+            db.vault[id.split(".")[1]] = (db.vault[id.split(".")[1]].slice(0,transferData[5])).concat(db.vault[id.split(".")[1]].slice(transferData[5]+1))
             db.characters[transferData[3]].inventory[id.split(".")[1]].push(item)
         }
         sortVault();
