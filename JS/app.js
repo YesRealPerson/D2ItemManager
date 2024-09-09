@@ -204,6 +204,7 @@ const getItem = (id, hash, response) => {
     }
     // Basic Information from the manifest
     let newItem = {
+        hash: hash,
         id: id,
         name: itemDef.displayProperties.name,
         flavor: itemDef.flavorText,
@@ -385,7 +386,17 @@ const itemToHTML = (item) => {
         tempStyle.id = "tempStyle"
         tempStyle.innerHTML = ".item {pointer-events: none;}"
         document.body.appendChild(tempStyle);
-        console.log(`Transfer from: ${document.getElementById(item.id).parentElement.id}`)
+        let parentId = document.getElementById(item.id).parentElement.id;
+        let parentIdSplit = document.getElementById(item.id).parentElement.id.split(".")
+        console.log(`Transfer from: ${parentId}`)
+        transferData[0] = item.hash; // Item hash (wow)
+        transferData[1] = 1; // Amount of item to transfer (always one since they're all instanced)
+        transferData[2] = item.id; // Item instance id
+        if (parentIdSplit[0] == "equipped" || parentIdSplit[0] == "inventory") { // If we are moving from a character
+            transferData[3] = parentIdSplit[2]; // Character id
+        } else { // We are moving from vault
+            transferData[3] = undefined;
+        }
     })
     element.addEventListener("dragend", (event) => {
         document.getElementById("tempStyle").remove();
@@ -409,6 +420,44 @@ const itemCompare = (a, b) => {
         }
         return lightDiff;
     }
+}
+
+const onDrop = async (id) => {
+    console.log("Transfer to: ", id);
+    let vault = false; //Are we transfering to (true) or from (false) the vault
+    if (!transferData[3]) { // Character id is not present from dragstart event
+        transferData[3] = id.split(".")[2];
+    } else {
+        vault = true;
+    }
+    if((await transferItem(transferData[0], transferData[1], trasnferData[2], transferData[3], vault))==200){
+        if(vault){ // Move item from character to vault
+            let character = transferData[3].split(".");
+            if(character[0] == "inventory"){
+                let inventory = db.characters[character[2]].inventory[character[1]]
+                inventory.forEach(item => {
+                    if(item.id == transferData[2]){
+                        db.vault[character[1]].push(item)
+                        delete item
+                    }
+                });
+                
+            }else{
+                console.log("What.")
+            }
+        }else{ // Move item from vault to character
+            let location = id.split(".");
+            let inventory = db.vault[location[1]]
+            inventory.forEach(item => {
+                if(item.id == transferData[2]){
+                    db.vault[character[1]].push(item)
+                    delete item
+                }
+            });
+        }
+        sortVault();
+    }
+
 }
 
 // Sorts db and fills in page
@@ -460,21 +509,21 @@ const sortVault = () => {
             let equippedElement = document.createElement("div");
             equippedElement.className = "equipped";
             equippedElement.id = `equipped.${bucketName}.${id}`
-            equippedElement.addEventListener("drop",(event) => {
+            equippedElement.addEventListener("drop", (event) => {
                 event.preventDefault();
-                console.log(`Transfer to: equipped.${bucketName}.${id}`);
+                onDrop(`equipped.${bucketName}.${id}`);
             })
-            equippedElement.addEventListener("dragover",(event) => {
+            equippedElement.addEventListener("dragover", (event) => {
                 event.preventDefault();
             })
             let characterElement = document.createElement("div");
             characterElement.className = "inventory";
             characterElement.id = `inventory.${bucketName}.${id}`
-            characterElement.addEventListener("drop",(event) => {
+            characterElement.addEventListener("drop", (event) => {
                 event.preventDefault();
-                console.log(`Transfer to: inventory.${bucketName}.${id}`);
+                onDrop(`equipped.${bucketName}.${id}`);
             })
-            characterElement.addEventListener("dragover",(event) => {
+            characterElement.addEventListener("dragover", (event) => {
                 event.preventDefault();
             })
 
@@ -501,11 +550,11 @@ const sortVault = () => {
                 let vaultElement = document.createElement("div");
                 vaultElement.className = "vault"
                 vaultElement.id = `vault.${bucketName}`
-                vaultElement.addEventListener("drop",(event) => {
+                vaultElement.addEventListener("drop", (event) => {
                     event.preventDefault();
-                    console.log(`Transfer to: vault.${bucketName}`);
+                    onDrop(`equipped.${bucketName}.${id}`);
                 })
-                vaultElement.addEventListener("dragover",(event) => {
+                vaultElement.addEventListener("dragover", (event) => {
                     event.preventDefault();
                 })
                 // Fill vault bucket, only needs to be done once
@@ -566,7 +615,7 @@ const getVault = async () => {
                         character.equipped[item.bucket] = [];
                         character.equipped[item.bucket].push(item);
                     }
-                } catch (err){
+                } catch (err) {
                     console.error(equipped[j].itemInstanceId, "  ", equipped[j].itemHash, "\n", err)
                 }
             }
@@ -589,7 +638,7 @@ const getVault = async () => {
                         character.inventory[item.bucket] = [];
                         character.inventory[item.bucket].push(item);
                     }
-                } catch (err){
+                } catch (err) {
                     console.error(inventory[j].itemInstanceId, "  ", inventory[j].itemHash, "\n", err)
                 }
             }
@@ -639,27 +688,35 @@ const getVault = async () => {
 /**Transfers an item
  * itemHash the hash of the item being transfered, don't ask me why they need this when they have the instance id
  * stackSize the amount of an item being transfered, generally just 1
- * toVault is it going to the vault from a character (true) or going from the vault to a character (false)
  * instance the instance id
  * character the id of the character being referenced 
+ * toVault is it going to the vault from a character (true) or going from the vault to a character (false)
  * */
-const transferItem = async (itemHash, stackSize, toVault, instance, character) => {
-    let data = globalReq;
-    data.data = {
-        "itemReferenceHash": itemHash,
-        "stackSize": stackSize,
-        "itemId": instance,
-        "transferToVault": toVault,
-        "characterId": character,
-        "membershipType": membershipType
-    };
+const transferItem = async (itemHash, stackSize, instance, character, toVault) => {
+    return new Promise(async (res, rej) => {
+        let data = globalReq;
+        data.data = {
+            "itemReferenceHash": itemHash,
+            "stackSize": stackSize,
+            "itemId": instance,
+            "transferToVault": toVault,
+            "characterId": character,
+            "membershipType": membershipType
+        };
 
-    let response = await fetch(baseURL + "Actions/Items/TransferItem/", data)
-    if (response.status == 401) {
-        console.log("Transfer item failed!\nRefreshing token\nResponse for debug:" + await response.text());
-        await refreshAccess();
-        transferItem(itemHash, stackSize, toVault, instance, character);
-    }
+        let response = await fetch(baseURL + "Actions/Items/TransferItem/", data)
+        if (response.status == 401) {
+            console.log("Transfer item failed!\nRefreshing token\nResponse for debug:" + await response.text());
+            await refreshAccess();
+            transferItem(itemHash, stackSize, toVault, instance, character);
+        }
+        else if (response.status == 200) {
+            res(200)
+        } else {
+            console.error("Something funky happened! (transferItem)\n", JSON.stringify(response), response)
+            rej(500)
+        }
+    });
 }
 
 /**Equips an item
