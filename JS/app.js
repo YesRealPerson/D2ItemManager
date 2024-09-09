@@ -442,15 +442,13 @@ const onDrop = async (id) => {
                     }
                 });
 
-            } else {
-                console.log("What.")
             }
         } else { // Move item from vault to character
             let location = id.split(".");
             let inventory = db.vault[location[1]]
             inventory.forEach(item => {
                 if (item.id == transferData[2]) {
-                    db.vault[character[1]].push(item)
+                    db.vault[location[1]].push(item)
                     delete item
                 }
             });
@@ -509,19 +507,12 @@ const sortVault = () => {
             let equippedElement = document.createElement("div");
             equippedElement.className = "equipped";
             equippedElement.id = `equipped.${bucketName}.${id}`
-            equippedElement.addEventListener("drop", (event) => {
-                event.preventDefault();
-                onDrop(`equipped.${bucketName}.${id}`);
-            })
-            equippedElement.addEventListener("dragover", (event) => {
-                event.preventDefault();
-            })
             let characterElement = document.createElement("div");
             characterElement.className = "inventory";
             characterElement.id = `inventory.${bucketName}.${id}`
             characterElement.addEventListener("drop", (event) => {
                 event.preventDefault();
-                onDrop(`equipped.${bucketName}.${id}`);
+                onDrop(`inventory.${bucketName}.${id}`);
             })
             characterElement.addEventListener("dragover", (event) => {
                 event.preventDefault();
@@ -552,7 +543,7 @@ const sortVault = () => {
                 vaultElement.id = `vault.${bucketName}`
                 vaultElement.addEventListener("drop", (event) => {
                     event.preventDefault();
-                    onDrop(`equipped.${bucketName}.${id}`);
+                    onDrop(`vault.${bucketName}.${id}`);
                 })
                 vaultElement.addEventListener("dragover", (event) => {
                     event.preventDefault();
@@ -726,11 +717,12 @@ const transferItem = async (itemHash, stackSize, instance, character, toVault) =
  */
 const equipItem = async (instance, character) => {
     let data = globalReq;
-    data.data = {
+    data.method = "POST"
+    data.body = json.stringify({
         "itemId": instance,
         "characterId": character,
         "membershipType": membershipType
-    };
+    });
 
     let response = await fetch(baseURL + "Actions/Items/EquipItem/", data)
     if (response.status == 401) {
