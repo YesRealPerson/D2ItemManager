@@ -309,7 +309,7 @@ const getVault = async () => {
             7: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_b2fe51a94f3533f97079dfa0d27a4096.png"
         }
         // If the item is an armor piece or not
-        let armor = item.types[1] == 1;
+        let armor = item.type[1] == 1;
         // Outer final element
         let element = document.createElement("div");
         // Show item stats on click in inner window
@@ -323,11 +323,11 @@ const getVault = async () => {
         let info = document.createElement("div");
         if (!armor) {
             // Set title of element
-            element.title = `${item.name}\n${tierTypes[item.tierType]} ${manifests[4][item.types[2]]}`;
+            element.title = `${item.name}\n${tierTypes[item.tierType]} ${manifests[4][item.type[2]]}`;
             // Fill item info information
             info.innerHTML = `<img src=${damageTypes[item.damageType]}> ${item.light}`;
         } else {
-            element.title = `${item.name}\n${tierTypes[item.tierType]} ${manifests[4][item.types[0]]}`;
+            element.title = `${item.name}\n${tierTypes[item.tierType]} ${manifests[4][item.type[0]]}`;
             info.innerHTML = `${item.light}`;
         }
         element.appendChild(info);
@@ -437,7 +437,7 @@ const getVault = async () => {
         if (vault[i].itemInstanceId != undefined) {
             try {
                 let item = getItem(vault[i].itemInstanceId, vault[i].itemHash);
-                item.bucket = buckets[item.bucketHash];
+                item.bucket = buckets[vault[i].bucketHash];
                 try {
                     db.vault[item.bucket].push(item);
                 } catch {
@@ -473,6 +473,7 @@ const getVault = async () => {
         let element = document.createElement("div");
         element.innerText = classTypes[character.class];
         element.style.backgroundImage = `url("https://www.bungie.net${character.emblemBig}")`
+        element.className = "selector classes"
         document.getElementById("characters").appendChild(element);
 
         for (let j = 0; j < bucketElements.length; j++) {
@@ -486,7 +487,6 @@ const getVault = async () => {
                     equippedElement.appendChild(itemToHTML(character.equipped[bucketName][0]))
                 } catch (err){
                     console.log(`bucket id ${bucketName} does not exist in character ${id} equipped!\nError: ${err}`)
-                    console.trace();
                 }
 
                 // Fill vault bucket
@@ -498,7 +498,6 @@ const getVault = async () => {
                     }
                 } catch (err){
                     console.log(`bucket id ${bucketName} does not exist in vault!\nError: ${err}`)
-                    console.trace();
                 }
             }
 
@@ -512,7 +511,6 @@ const getVault = async () => {
                 }
             } catch (err){
                 console.log(`bucket id ${bucketName} does not exist in character ${id} inventory!\nError: ${err}`)
-                console.trace();
             }
         }
     }
