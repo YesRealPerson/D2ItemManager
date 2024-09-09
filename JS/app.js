@@ -567,12 +567,8 @@ const getVault = async () => {
     createNotification("Refreshing inventory!", 1500);
 
     // Get character information
-    try{
     const response = await (await fetch(baseURL +
         `${membershipType}/Profile/${membershipID}?components=102,200,201,205,206,300,301,302,304,305,310`, globalReq)).json();
-    }catch(err){
-        console.log("what the fuck?\n",err)
-    }
     if (response.status == 401) {
         console.log("Vault refresh failed!\nRefreshing token\nResponse for debug:" + await response.text());
         await refreshAccess();
