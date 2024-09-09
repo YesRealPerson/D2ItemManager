@@ -508,3 +508,6 @@ svg
 #itemButton{
 	z-index: 5000;
 }
+.nolight div div div{
+	display: none;
+}

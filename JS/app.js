@@ -318,16 +318,33 @@ const getVault = async () => {
         element.id = item.id;
 
         // push watermark and push icon
+        if(item.watermark){
         element.innerHTML = `<img src=${root + item.watermark}><img src=${root + item.icon}>`;
-
+        }else{
+            element.innerHTML = `<img src="/IMG/blank.png"><img src=${root + item.icon}>`;
+        }
         let info = document.createElement("div");
         if (!armor) {
             // Set title of element
-            element.title = `${item.name}\n${tierTypes[item.rarity]} ${manifests[4][item.type[2].shortTitle]}`;
+            let title = `${item.name}`;
+            if(tierTypes[item.rarity]){
+                title += `<br>${tierTypes[item.rarity]}`
+            }
+            if(manifests[4][item.type[0]].shortTitle){
+                title+= `${manifests[4][item.type[2]].shortTitle}`
+            }
+            element.title = title
             // Fill item info information
-            info.innerHTML = `<img src=${root + damageTypes[item.damageType]}> ${item.light}`;
+            info.innerHTML = `<img src=${root + damageTypes[item.element]}> ${item.light}`;
         } else {
-            element.title = `${item.name}\n${tierTypes[item.rarity]} ${manifests[4][item.type[0].shortTitle]}`;
+            let title = `${item.name}`;
+            if(tierTypes[item.rarity]){
+                title += `<br>${tierTypes[item.rarity]}`
+            }
+            if(manifests[4][item.type[0]].shortTitle){
+                title+= `${manifests[4][item.type[0]].shortTitle}`
+            }
+            element.title = title
             info.innerHTML = `${item.light}`;
         }
         element.appendChild(info);
@@ -432,16 +449,18 @@ const getVault = async () => {
     times.sort((a, b) => { return b.time - a.time; });
 
     // Vault
+    let j = 0;
     let vault = response.Response.profileInventory.data.items;
     for (let i = 0; i < vault.length; i++) {
         if (vault[i].itemInstanceId != undefined) {
             try {
-                if(i < 10){
+                if(j < 10){
                     console.log(vault[i].bucketHash)
                     console.log(buckets[vault[i].bucketHash])
                     if(!vault[i].bucketHash){
                         console.log(vault[i])
                     }
+                    j++
                 }
                 let item = getItem(vault[i].itemInstanceId, vault[i].itemHash);
                 item.bucket = buckets[vault[i].bucketHash];
