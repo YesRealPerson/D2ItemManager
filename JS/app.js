@@ -548,8 +548,8 @@ const getVault = async () => {
                         character.equipped[item.bucket] = [];
                         character.equipped[item.bucket].push(item);
                     }
-                } catch {
-                    console.error(inventory[j].itemInstanceId, "  ", inventory[j].itemHash)
+                } catch (err){
+                    console.error(equipped[j].itemInstanceId, "  ", equipped[j].itemHash, "\n", err)
                 }
             }
         }
@@ -571,8 +571,8 @@ const getVault = async () => {
                         character.inventory[item.bucket] = [];
                         character.inventory[item.bucket].push(item);
                     }
-                } catch {
-                    console.error(inventory[j].itemInstanceId, "  ", inventory[j].itemHash)
+                } catch (err){
+                    console.error(inventory[j].itemInstanceId, "  ", inventory[j].itemHash, "\n", err)
                 }
             }
         }
