@@ -246,8 +246,6 @@ const getVault = async () => {
                         icon: data.displayProperties.icon,
                         description: data.displayProperties.description
                     }])
-                } else {
-                    newItem.perks.push([]);
                 }
             }
         }

@@ -112,7 +112,7 @@ const showItemInfo = async (item) => {
     }
     let armor = item.type[1] != 1;;
 
-    document.getElementById("screenshot").setAttribute("src", "https://bungie.net"+screenshot);
+    document.getElementById("screenshot").setAttribute("src", "https://bungie.net" + screenshot);
     document.getElementById("screenshot").setAttribute("title", name + "<br>" + rarity);
 
     document.getElementById("panelName").innerHTML = name;
@@ -137,20 +137,24 @@ const showItemInfo = async (item) => {
     let perkElement = document.getElementById("perks");
     perkElement.innerHTML = "";
     perks.forEach(perk => {
-        let icon = document.createElement("img");
-        icon.setAttribute("src", perk.icon);
-        icon.setAttribute("class", "perk");
-        icon.setAttribute("title", perk.name + "<br>" + perk.description.replace(/\n/g, "<br>"));
-        let width = (20/perks.length);
-        let minWidth = (350/perks.length);
-        icon.style.width = "calc("+width + "vw)";
-        icon.style.minWidth = minWidth+"px";
-        if(perk.name.indexOf("Enhanced") != -1){
-            icon.style.border = "2px solid #eade8b";
-            icon.style.borderRadius = "200px";
-            icon.style.width = "calc(-4px)";
+        try {
+            let icon = document.createElement("img");
+            icon.setAttribute("src", perk.icon);
+            icon.setAttribute("class", "perk");
+            icon.setAttribute("title", perk.name + "<br>" + perk.description.replace(/\n/g, "<br>"));
+            let width = (20 / perks.length);
+            let minWidth = (350 / perks.length);
+            icon.style.width = "calc(" + width + "vw)";
+            icon.style.minWidth = minWidth + "px";
+            if (perk.name.indexOf("Enhanced") != -1) {
+                icon.style.border = "2px solid #eade8b";
+                icon.style.borderRadius = "200px";
+                icon.style.width = "calc(-4px)";
+            }
+            perkElement.appendChild(icon);
+        } catch (err) {
+            console.log(err);
         }
-        perkElement.appendChild(icon);
     });
 
     let statsElement = document.getElementById("statName");
@@ -163,12 +167,12 @@ const showItemInfo = async (item) => {
     statsElement.innerText = "";
     if (damageTypes[item.element]) {
         statsElement.innerHTML += "Element:<br>";
-        valueElement.innerHTML += damageTypes[item.element]+" <img src=\"" + damageImages[item.element] + "\" style=\"width: 15px; height: 15px; vertical-align: middle;\"> " +"<br>";
+        valueElement.innerHTML += damageTypes[item.element] + " <img src=\"" + damageImages[item.element] + "\" style=\"width: 15px; height: 15px; vertical-align: middle;\"> " + "<br>";
         down++;
     }
     if (item.light != "") {
         statsElement.innerHTML += "Light Level:<br>";
-        valueElement.innerHTML += item.light + "<img src=\"/IMG/light.png\" style=\"width: 15px; height: 15px; vertical-align: middle;  transform: scaleX(-1);\">" +"<br>";
+        valueElement.innerHTML += item.light + "<img src=\"/IMG/light.png\" style=\"width: 15px; height: 15px; vertical-align: middle;  transform: scaleX(-1);\">" + "<br>";
         down++;
     }
 
@@ -181,7 +185,7 @@ const showItemInfo = async (item) => {
     }
 
     if (armor) {
-        document.getElementById("type").innerHTML = rarity + " " + manifests[4][item.type[0]].shortTitle +"<br>";
+        document.getElementById("type").innerHTML = rarity + " " + manifests[4][item.type[0]].shortTitle + "<br>";
         stats.sort((s1, s2) => {
             //armor comparison function
             let order = ["Mobility", "Resilience", "Recovery", "Discipline", "Intellect", "Strength"];
@@ -194,7 +198,7 @@ const showItemInfo = async (item) => {
             return (i1 - i2);
         });
     } else {
-        document.getElementById("type").innerHTML = rarity + " " + manifests[4][item.type[2]].shortTitle +"<br>";
+        document.getElementById("type").innerHTML = rarity + " " + manifests[4][item.type[2]].shortTitle + "<br>";
         stats.sort((s1, s2) => {
             //weapon comparison function
             let order = ["Rounds Per Minute", "Draw Time", "Charge Time", "Magazine", "Blast Radius", "Velocity", "Impact", "Range", "Stability", "Handling", "Reload Speed", "Shield Duration", "Aim Assistance", "Airborne Effectiveness", "Accuracy", "Zoom", "Recoil Direction", "Swing Speed", "Guard Efficiency", "Guard Resistance", "Charge Rate", "Guard Endurance", "Ammo Capacity"];
@@ -213,21 +217,21 @@ const showItemInfo = async (item) => {
         let value = stat.value;
         let icon = stat.icon;
         let armor = false;
-        if(name=="Aim Assistance"){
+        if (name == "Aim Assistance") {
             name = "AA";
-        }else if(name=="Airborne Effectiveness"){
-            name ="AE";
-        }else if(name=="Reload Speed"){
-            name="Reload";
-        }else if(name=="Recoil Direction"){
-            name="Recoil";
+        } else if (name == "Airborne Effectiveness") {
+            name = "AE";
+        } else if (name == "Reload Speed") {
+            name = "Reload";
+        } else if (name == "Recoil Direction") {
+            name = "Recoil";
         }
-        else if(name=="Rounds Per Minute"){
-            name="RPM";
+        else if (name == "Rounds Per Minute") {
+            name = "RPM";
         }
-        statsElement.innerHTML += name+":<br>";
+        statsElement.innerHTML += name + ":<br>";
         if (icon != "https://bungie.netundefined") {
-            valueElement.innerHTML += "<img src = https://bungie.net" + icon + " style=\"height: 15px; width: auto; vertical-align: middle;\"> "+value+"<br>";
+            valueElement.innerHTML += "<img src = https://bungie.net" + icon + " style=\"height: 15px; width: auto; vertical-align: middle;\"> " + value + "<br>";
             armor = true;
         } else {
             valueElement.innerHTML += value + "<br>";
@@ -246,7 +250,7 @@ const showItemInfo = async (item) => {
                 innerBar.style.backgroundColor = "rgb(200,0,0)";
             }
         }
-        if(value < 0) {
+        if (value < 0) {
             innerBar.style.backgroundColor = "rgb(200,0,0)"
             value *= -1;
         }
@@ -258,7 +262,7 @@ const showItemInfo = async (item) => {
         if (name == "RPM" || name == "Charge Time" || name == "Draw Time" || name == "Magazine") {
             bar.style.visibility = "hidden";
         }
-        
+
         bar.appendChild(innerBar);
         barElement.appendChild(bar);
     })
