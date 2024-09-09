@@ -85,6 +85,13 @@ const showItemInfo = async (item) => {
         6: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_530c4c3e7981dc2aefd24fd3293482bf.png",
         7: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_b2fe51a94f3533f97079dfa0d27a4096.png"
     };
+    let armorNames = {
+        47: "Chestplate",
+        49: "Class Item",
+        46: "Gauntlets",
+        45: "Helmet",
+        48: "Legs"
+    }
     let breakers = ["", "https://www.bungie.net/common/destiny2_content/icons/DestinyBreakerTypeDefinition_07b9ba0194e85e46b258b04783e93d5d.png", "https://www.bungie.net/common/destiny2_content/icons/DestinyBreakerTypeDefinition_da558352b624d799cf50de14d7cb9565.png", "https://www.bungie.net/common/destiny2_content/icons/DestinyBreakerTypeDefinition_825a438c85404efd6472ff9e97fc7251.png"];
     let breakerNames = ["", "Anti-Barrier", "Overload Rounds", "Unstoppable Rounds"];
     draggable.style.visibility = "visible";
@@ -136,25 +143,27 @@ const showItemInfo = async (item) => {
 
     let perkElement = document.getElementById("perks");
     perkElement.innerHTML = "";
-    perks.forEach(perk => {
-        try {
-            let icon = document.createElement("img");
-            icon.setAttribute("src", perk.icon);
-            icon.setAttribute("class", "perk");
-            icon.setAttribute("title", perk.name + "<br>" + perk.description.replace(/\n/g, "<br>"));
-            let width = (20 / perks.length);
-            let minWidth = (350 / perks.length);
-            icon.style.width = "calc(" + width + "vw)";
-            icon.style.minWidth = minWidth + "px";
-            if (perk.name.indexOf("Enhanced") != -1) {
-                icon.style.border = "2px solid #eade8b";
-                icon.style.borderRadius = "200px";
-                icon.style.width = "calc(-4px)";
+    perks.forEach(perkColumn => {
+        perkColumn.forEach(perk => {
+            try {
+                let icon = document.createElement("img");
+                icon.setAttribute("src", perk.icon);
+                icon.setAttribute("class", "perk");
+                icon.setAttribute("title", perk.name + "<br>" + perk.description.replace(/\n/g, "<br>"));
+                let width = (20 / perks.length);
+                let minWidth = (350 / perks.length);
+                icon.style.width = "calc(" + width + "vw)";
+                icon.style.minWidth = minWidth + "px";
+                if (perk.name.indexOf("Enhanced") != -1) {
+                    icon.style.border = "2px solid #eade8b";
+                    icon.style.borderRadius = "200px";
+                    icon.style.width = "calc(-4px)";
+                }
+                perkElement.appendChild(icon);
+            } catch (err) {
+                console.log(err);
             }
-            perkElement.appendChild(icon);
-        } catch (err) {
-            console.log(err);
-        }
+        })
     });
 
     let statsElement = document.getElementById("statName");
@@ -185,7 +194,11 @@ const showItemInfo = async (item) => {
     }
 
     if (armor) {
-        document.getElementById("type").innerHTML = rarity + " " + manifests[4][item.type[0]].shortTitle + "<br>";
+        let temp = rarity + " " + manifests[4][item.type[0]].shortTitle;
+        if(armorNames[item.type[1]]){
+            temp += " " + armorNames[item.type[1]];
+        }
+        document.getElementById("type").innerHTML =  + "<br>";
         stats.sort((s1, s2) => {
             //armor comparison function
             let order = ["Mobility", "Resilience", "Recovery", "Discipline", "Intellect", "Strength"];
@@ -198,7 +211,11 @@ const showItemInfo = async (item) => {
             return (i1 - i2);
         });
     } else {
-        document.getElementById("type").innerHTML = rarity + " " + manifests[4][item.type[2]].shortTitle + "<br>";
+        let temp = rarity + " " + manifests[4][item.type[2]].shortTitle;
+        if(temp[temp.length-1] == "s"){
+            temp = temp.substring(0,temp.length-1);
+        }
+        document.getElementById("type").innerHTML = temp + "<br>";
         stats.sort((s1, s2) => {
             //weapon comparison function
             let order = ["Rounds Per Minute", "Draw Time", "Charge Time", "Magazine", "Blast Radius", "Velocity", "Impact", "Range", "Stability", "Handling", "Reload Speed", "Shield Duration", "Aim Assistance", "Airborne Effectiveness", "Accuracy", "Zoom", "Recoil Direction", "Swing Speed", "Guard Efficiency", "Guard Resistance", "Charge Rate", "Guard Endurance", "Ammo Capacity"];
@@ -230,7 +247,7 @@ const showItemInfo = async (item) => {
             name = "RPM";
         }
         statsElement.innerHTML += name + ":<br>";
-        if (icon != "https://bungie.netundefined") {
+        if (icon) {
             valueElement.innerHTML += "<img src = https://bungie.net" + icon + " style=\"height: 15px; width: auto; vertical-align: middle;\"> " + value + "<br>";
             armor = true;
         } else {

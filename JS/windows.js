@@ -1,7 +1,7 @@
 // Global variables that can be edited from the settings menu
 
 // When true makes stat bars colored
-let color = false;
+let colorbars = false;
 const toggleColor = () => {
     color = !color;
     if (color) {
