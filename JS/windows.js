@@ -4,7 +4,7 @@
 let colorBars = false;
 const toggleColor = () => {
     colorBars = !colorBars;
-    if (color) {
+    if (colorBars) {
         document.getElementById("colorToggle").title = "Colored stats"
         document.getElementById("colorToggle").innerText = "Remove color from stat bars"
     } else {

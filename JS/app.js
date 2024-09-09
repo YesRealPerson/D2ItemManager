@@ -15,6 +15,22 @@ dexie.version(1).stores({
     manifests: `DBNAME`
 });
 
+// buckets we actually want to read
+const buckets = {
+    1498876634: "kinetic",
+    2465295065: "energy",
+    953998645: "power",
+    3448274439: "helmet",
+    3551918588: "gauntlets",
+    14239492: "chest",
+    20886954: "leg",
+    1585787867: "class",
+    3284755031: "subclass",
+    284967655: "ships",
+    4023194814: "ghosts",
+    2025709351: "vehicle",
+}
+
 /*
 manifests
 0, Inventory Item
@@ -51,6 +67,9 @@ let db = {
     vault: {/* See item schema */ }
 }
 
+// Array that is filled in whenever an item is dragged
+transferData = [];
+
 // Maps for specific information 
 //(yes this is still from a manifest but it's data that I doubt will ever change and I only really need a small amount of)
 
@@ -59,6 +78,9 @@ let classTypes = ["Titan", "Hunter", "Warlock"]
 
 // Rarity maps
 let rarity = ["What the fuck is this?", "Currency", "Common", "Uncommon", "Rare", "Legendary", "Exotic"]
+
+// Create dictionary of character ids to time last played, sort via most recent time
+let times = [];
 
 // Indexed DB creator
 const indb = (dbName, version) => {
@@ -166,339 +188,234 @@ const refreshAccess = async () => {
     })
 }
 
-// Updates vault variable
-const getVault = async () => {
-    createNotification("Refreshing inventory!", 1500);
-    // buckets we actually want to read
-    const buckets = {
-        1498876634: "kinetic",
-        2465295065: "energy",
-        953998645: "power",
-        3448274439: "helmet",
-        3551918588: "gauntlets",
-        14239492: "chest",
-        20886954: "leg",
-        1585787867: "class",
-        3284755031: "subclass",
-        284967655: "ships",
-        4023194814: "ghosts",
-        2025709351: "vehicle",
+// Get item information by instance id
+const getItem = (id, hash) => {
+    // console.log(hash, " ", id);
+    let data = response.Response.itemComponents;
+    let instances = data.instances.data[id];
+    let stats = data.stats.data[id];
+    let perks = data.sockets.data[id];
+    let perksExtra = data.reusablePlugs.data[id];
+    let itemDef = manifests[0][hash];
+
+    // Some items don't have light levels (ghosts, sparrows, ships)
+    if (instances.primaryStat == undefined) {
+        instances.primaryStat = { value: -1 };
+    }
+    // Basic Information from the manifest
+    let newItem = {
+        id: id,
+        name: itemDef.displayProperties.name,
+        flavor: itemDef.flavorText,
+        icon: itemDef.displayProperties.icon,
+        background: itemDef.screenshot,
+        watermark: itemDef.iconWatermark,
+        rarity: itemDef.inventory.tierType,
+        type: itemDef.itemCategoryHashes,
+        breakerType: itemDef.breakerType,
+        // THIS INFORMATION IS FROM THE INSTANCES ITEM COMPONENT
+        light: instances.primaryStat.value,
+        element: instances.damageType,
+        perks: [],
+        stats: [],
+        bucket: itemDef.inventory.bucketTypeHash
     }
 
-    // Get item information by instance id
-    const getItem = (id, hash) => {
-        // console.log(hash, " ", id);
-        let data = response.Response.itemComponents;
-        let instances = data.instances.data[id];
-        let stats = data.stats.data[id];
-        let perks = data.sockets.data[id];
-        let perksExtra = data.reusablePlugs.data[id];
-        let itemDef = manifests[0][hash];
-
-        // Some items don't have light levels (ghosts, sparrows, ships)
-        if (instances.primaryStat == undefined) {
-            instances.primaryStat = { value: -1 };
+    // Stats
+    if (stats != undefined) {
+        stats = stats.stats;
+        let keys = Object.keys(stats);
+        for (let i = 0; i < keys.length; i++) {
+            let key = keys[i];
+            let data = manifests[2][key];
+            newItem.stats.push({
+                name: data.displayProperties.name,
+                icon: data.displayProperties.icon,
+                value: stats[key].value
+            })
         }
-        // Basic Information from the manifest
-        let newItem = {
-            id: id,
-            name: itemDef.displayProperties.name,
-            flavor: itemDef.flavorText,
-            icon: itemDef.displayProperties.icon,
-            background: itemDef.screenshot,
-            watermark: itemDef.iconWatermark,
-            rarity: itemDef.inventory.tierType,
-            type: itemDef.itemCategoryHashes,
-            breakerType: itemDef.breakerType,
-            // THIS INFORMATION IS FROM THE INSTANCES ITEM COMPONENT
-            light: instances.primaryStat.value,
-            element: instances.damageType,
-            perks: [],
-            stats: [],
-            bucket: itemDef.inventory.bucketTypeHash
-        }
+    }
+    // TODO: sort keys by specific order rather than by alphabetical
+    newItem.stats.sort((a, b) => ("" + a.name).localeCompare(("" + b.name)))
 
-        // Stats
-        if (stats != undefined) {
-            stats = stats.stats;
-            let keys = Object.keys(stats);
-            for (let i = 0; i < keys.length; i++) {
-                let key = keys[i];
-                let data = manifests[2][key];
-                newItem.stats.push({
+    let dupes = {}
+    // Perks
+    if (perks != undefined) {
+        perks = perks.sockets;
+        for (let i = 0; i < perks.length; i++) {
+            let perk = perks[i];
+            if (perk.isVisible && !dupes[perk.plugHash]) {
+                let data = manifests[0][perk.plugHash];
+                let enhanced = data.itemTypeAndTierDisplayName == "Uncommon Enhanced Trait";
+                newItem.perks.push([{
                     name: data.displayProperties.name,
                     icon: data.displayProperties.icon,
-                    value: stats[key].value
-                })
+                    description: data.displayProperties.description,
+                    enhanced: enhanced
+                }])
+                dupes[perk.plugHash] = 1;
             }
         }
-        // TODO: sort keys by specific order rather than by alphabetical
-        newItem.stats.sort((a, b) => ("" + a.name).localeCompare(("" + b.name)))
-
-        let dupes = {}
-        // Perks
-        if (perks != undefined) {
-            perks = perks.sockets;
-            for (let i = 0; i < perks.length; i++) {
-                let perk = perks[i];
-                if (perk.isVisible && !dupes[perk.plugHash]) {
-                    let data = manifests[0][perk.plugHash];
+    }
+    if (perksExtra != undefined) {
+        perksExtra = perksExtra.plugs;
+        let keys = Object.keys(perksExtra);
+        for (let i = 0; i < keys.length; i++) {
+            let key = keys[i];
+            let extras = perksExtra[key];
+            for (let j = 0; j < extras.length; j++) {
+                if (extras[j].canInsert && extras[j].enabled && newItem.perks[key] != 0 && !dupes[extras[j].plugItemHash]) {
+                    let data = manifests[0][extras[j].plugItemHash];
                     let enhanced = data.itemTypeAndTierDisplayName == "Uncommon Enhanced Trait";
-                    newItem.perks.push([{
-                        name: data.displayProperties.name,
-                        icon: data.displayProperties.icon,
-                        description: data.displayProperties.description,
-                        enhanced: enhanced
-                    }])
-                    dupes[perk.plugHash] = 1;
-                }
-            }
-        }
-        if (perksExtra != undefined) {
-            perksExtra = perksExtra.plugs;
-            let keys = Object.keys(perksExtra);
-            for (let i = 0; i < keys.length; i++) {
-                let key = keys[i];
-                let extras = perksExtra[key];
-                for (let j = 0; j < extras.length; j++) {
-                    if (extras[j].canInsert && extras[j].enabled && newItem.perks[key] != 0 && !dupes[extras[j].plugItemHash]) {
-                        let data = manifests[0][extras[j].plugItemHash];
-                        let enhanced = data.itemTypeAndTierDisplayName == "Uncommon Enhanced Trait";
-                        if (data.itemTypeDisplayName.indexOf("Trait") != -1) {
-                            newItem.perks[key].push({
-                                name: data.displayProperties.name,
-                                icon: data.displayProperties.icon,
-                                description: data.displayProperties.description,
-                                enhanced: enhanced
-                            })
-                            dupes[extras[j].plugItemHash] = 1;
-                            // console.log(extras[j].plugItemHash)
-                            // console.log(data.displayProperties.name)
-                        }
+                    if (data.itemTypeDisplayName.indexOf("Trait") != -1) {
+                        newItem.perks[key].push({
+                            name: data.displayProperties.name,
+                            icon: data.displayProperties.icon,
+                            description: data.displayProperties.description,
+                            enhanced: enhanced
+                        })
+                        dupes[extras[j].plugItemHash] = 1;
+                        // console.log(extras[j].plugItemHash)
+                        // console.log(data.displayProperties.name)
                     }
                 }
             }
         }
-
-        console.log(dupes)
-
-        return newItem;
     }
 
-    // Makes an item from the vault into an HTML element
-    const itemToHTML = (item) => {
-        /*
-        Example Item DIV
-        <div id=[item instance id] title=[item name, rarity, item type] onclick=showItemInfo(item)>
-            *Images layered onto each other
-            <img src=[watermark]>
-            <img src=[icon]>
+    console.log(dupes)
 
-            <div>
-                *Light level and element icon
-                <img src=[damage type]>
-                [light level]
-            </div>
+    return newItem;
+}
+
+// Makes an item from the vault into an HTML element
+const itemToHTML = (item) => {
+    /*
+    Example Item DIV
+    <div id=[item instance id] title=[item name, rarity, item type] onclick=showItemInfo(item)>
+        *Images layered onto each other
+        <img src=[watermark]>
+        <img src=[icon]>
+
+        <div>
+            *Light level and element icon
+            <img src=[damage type]>
+            [light level]
         </div>
-        */
-        const root = "https://bungie.net";
-        let tierTypes = {
-            3: "Common",
-            4: "Rare",
-            5: "Legendary",
-            6: "Exotic"
-        };
-        let damageTypes = {
-            1: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_3385a924fd3ccb92c343ade19f19a370.png",
-            2: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_092d066688b879c807c3b460afdd61e6.png",
-            3: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_2a1773e10968f2d088b97c22b22bba9e.png",
-            4: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_ceb2f6197dccf3958bb31cc783eb97a0.png",
-            5: "https://www.bungie.net/img/misc/missing_icon_d2.png",
-            6: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_530c4c3e7981dc2aefd24fd3293482bf.png",
-            7: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_b2fe51a94f3533f97079dfa0d27a4096.png"
-        };
-        let armorNames = {
-            47: "Chestplate",
-            49: "Class Item",
-            46: "Gauntlets",
-            45: "Helmet",
-            48: "Legs"
-        }
-        // If the item is an armor piece or not
-        let armor = item.type[1] != 1;
-        // Outer final element
-        let element = document.createElement("div");
-        // Show item stats on click in inner window
-        element.addEventListener("click", () => { showItemInfo(item) });
-        // Set item id as unique indentifier
-        element.id = item.id;
-        element.className = "item hoverwrap"
-
-        // push watermark and push icon
-        if (item.watermark) {
-            element.innerHTML = `<img src=${root + item.icon}><img src=${root + item.watermark}>`;
-        } else {
-            element.innerHTML = `<img src=${root + item.icon}>`;
-        }
-        let info = document.createElement("div");
-        if (item.type[1] != 50) { // If the item is not a class item
-            if (!armor) {
-                // Set title of element
-                let title = `${item.name}`;
-                if (tierTypes[item.rarity]) {
-                    title += `<br>${tierTypes[item.rarity]}`
-                }
-                if (manifests[4][item.type[0]].shortTitle) {
-                    title += ` ${manifests[4][item.type[2]].shortTitle}`
-                }
-                if (title[title.length - 1] == "s") {
-                    title = title.substring(0, title.length - 1);
-                }
-                element.title = title
-                // Fill item info information
-                info.innerHTML = `<img src=${damageTypes[item.element]}> ${item.light}`;
-            } else {
-                let title = `${item.name}`;
-                if (tierTypes[item.rarity]) {
-                    title += `<br>${tierTypes[item.rarity]}`
-                }
-                if (manifests[4][item.type[0]].shortTitle) {
-                    title += ` ${manifests[4][item.type[0]].shortTitle}`
-                }
-                if (armorNames[item.type[1]]) {
-                    title += " " + armorNames[item.type[1]];
-                }
-                element.title = title
-                info.innerHTML = `${item.light}`;
-            }
-        }
-        info.className = "info"
-        element.appendChild(info);
-        let darken = document.createElement("div");
-        darken.className = "darken"
-        darken.style.pointerEvents = "none";
-        element.appendChild(darken);
-        return element;
+    </div>
+    */
+    const root = "https://bungie.net";
+    let tierTypes = {
+        3: "Common",
+        4: "Rare",
+        5: "Legendary",
+        6: "Exotic"
+    };
+    let damageTypes = {
+        1: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_3385a924fd3ccb92c343ade19f19a370.png",
+        2: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_092d066688b879c807c3b460afdd61e6.png",
+        3: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_2a1773e10968f2d088b97c22b22bba9e.png",
+        4: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_ceb2f6197dccf3958bb31cc783eb97a0.png",
+        5: "https://www.bungie.net/img/misc/missing_icon_d2.png",
+        6: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_530c4c3e7981dc2aefd24fd3293482bf.png",
+        7: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_b2fe51a94f3533f97079dfa0d27a4096.png"
+    };
+    let armorNames = {
+        47: "Chestplate",
+        49: "Class Item",
+        46: "Gauntlets",
+        45: "Helmet",
+        48: "Legs"
     }
+    // If the item is an armor piece or not
+    let armor = item.type[1] != 1;
+    // Outer final element
+    let element = document.createElement("div");
+    // Show item stats on click in inner window
+    element.addEventListener("click", () => { showItemInfo(item) });
+    // Set item id as unique indentifier
+    element.id = item.id;
+    element.className = "item hoverwrap"
 
-    // Given two items compares them for sorting
-    const itemCompare = (a, b) => {
-        let lightDiff = b.light - a.light;
-        let rareDiff = b.rarity - a.rarity;
-        // Depending on user setting sorts by rarity first or by power level first
-        if (sort) {
-            if (lightDiff != 0) {
-                return lightDiff;
+    // push watermark and push icon
+    if (item.watermark) {
+        element.innerHTML = `<img src=${root + item.icon}><img src=${root + item.watermark}>`;
+    } else {
+        element.innerHTML = `<img src=${root + item.icon}>`;
+    }
+    let info = document.createElement("div");
+    if (item.type[1] != 50) { // If the item is not a class item
+        if (!armor) {
+            // Set title of element
+            let title = `${item.name}`;
+            if (tierTypes[item.rarity]) {
+                title += `<br>${tierTypes[item.rarity]}`
             }
-            return rareDiff;
+            if (manifests[4][item.type[0]].shortTitle) {
+                title += ` ${manifests[4][item.type[2]].shortTitle}`
+            }
+            if (title[title.length - 1] == "s") {
+                title = title.substring(0, title.length - 1);
+            }
+            element.title = title
+            // Fill item info information
+            info.innerHTML = `<img src=${damageTypes[item.element]}> ${item.light}`;
         } else {
-            if (rareDiff != 0) {
-                return rareDiff;
+            let title = `${item.name}`;
+            if (tierTypes[item.rarity]) {
+                title += `<br>${tierTypes[item.rarity]}`
             }
+            if (manifests[4][item.type[0]].shortTitle) {
+                title += ` ${manifests[4][item.type[0]].shortTitle}`
+            }
+            if (armorNames[item.type[1]]) {
+                title += " " + armorNames[item.type[1]];
+            }
+            element.title = title
+            info.innerHTML = `${item.light}`;
+        }
+    }
+    info.className = "info"
+    element.appendChild(info);
+    let darken = document.createElement("div");
+    darken.className = "darken"
+    darken.style.pointerEvents = "none";
+    element.appendChild(darken);
+    element.setAttribute("draggable", "true")
+    element.addEventListener("dragstart", (event) => {
+        let tempStyle = document.createElement("style");
+        tempStyle.id = "tempStyle"
+        tempStyle.innerHTML = ".item {pointer-events: none;}"
+        document.body.appendChild(tempStyle);
+        console.log("drag start\n"+event)
+    })
+    element.addEventListener("dragend", (event) => {
+        console.log("drag end\n"+event)
+        document.getElementById("tempStyle").remove();
+    })
+    return element;
+}
+
+// Given two items compares them for sorting
+const itemCompare = (a, b) => {
+    let lightDiff = b.light - a.light;
+    let rareDiff = b.rarity - a.rarity;
+    // Depending on user setting sorts by rarity first or by power level first
+    if (sort) {
+        if (lightDiff != 0) {
             return lightDiff;
         }
+        return rareDiff;
+    } else {
+        if (rareDiff != 0) {
+            return rareDiff;
+        }
+        return lightDiff;
     }
+}
 
-    // Get character information
-    const response = await (await fetch(baseURL +
-        `${membershipType}/Profile/${membershipID}?components=102,200,201,205,206,300,301,302,304,305,310`, globalReq)).json();
-    if (response.status == 401) {
-        console.log("Vault refresh failed!\nRefreshing token\nResponse for debug:" + await response.text());
-        await refreshAccess();
-        getVault();
-    }
-    // Browse to character information variable
-    let data = response.Response.characters.data;
-    let keys = Object.keys(data);
-
-    // Create dictionary of character ids to time last played, sort via most recent time
-    let times = [];
-
-    for (let i = 0; i < keys.length; i++) {
-        let key = keys[i];
-        times.push({ time: new Date(data[key].dateLastPlayed).getTime(), id: key });
-        // Basic character information
-        let character = {
-            id: key,
-            class: data[key].classType,
-            equipped: {},
-            loadouts: [],
-            inventory: {},
-            emblemSmall: data[key].emblemPath,
-            emblemBig: data[key].emblemBackgroundPath
-        }
-
-        // Equipped items
-        let equipped = response.Response.characterEquipment.data[key].items;
-        for (let j = 0; j < equipped.length; j++) {
-            if (equipped[j].itemInstanceId != undefined && buckets[equipped[j].bucketHash] != undefined) {
-                try {
-                    let item = getItem(equipped[j].itemInstanceId, equipped[j].itemHash);
-                    item.bucket = buckets[equipped[j].bucketHash];
-                    try {
-                        character.equipped[item.bucket].push(item);
-                    } catch {
-                        character.equipped[item.bucket] = [];
-                        character.equipped[item.bucket].push(item);
-                    }
-                } catch {
-                    console.error(inventory[j].itemInstanceId, "  ", inventory[j].itemHash)
-                }
-            }
-        }
-
-        // Loadouts
-        // TEMP DISABLED 
-        // character.loadouts = response.Response.characterLoadouts.data[key];
-
-        // Inventory
-        let inventory = response.Response.characterInventories.data[key].items;
-        for (let j = 0; j < inventory.length; j++) {
-            if (inventory[j].itemInstanceId != undefined && buckets[inventory[j].bucketHash] != undefined) {
-                try {
-                    let item = getItem(inventory[j].itemInstanceId, inventory[j].itemHash);
-                    item.bucket = buckets[inventory[j].bucketHash];
-                    try {
-                        character.inventory[item.bucket].push(item);
-                    } catch {
-                        character.inventory[item.bucket] = [];
-                        character.inventory[item.bucket].push(item);
-                    }
-                } catch {
-                    console.error(inventory[j].itemInstanceId, "  ", inventory[j].itemHash)
-                }
-            }
-        }
-        // Sort iventories
-        let inventoryKeys = Object.keys(character.inventory);
-        for (let j = 0; j < inventoryKeys.length; j++) {
-            character.inventory[inventoryKeys[j]].sort(itemCompare);
-        }
-
-        // Push character object to DB
-        db.characters[key] = character;
-    }
-
-    times.sort((a, b) => { return b.time - a.time; });
-
-    // Vault
-    let vault = response.Response.profileInventory.data.items;
-    for (let i = 0; i < vault.length; i++) {
-        if (vault[i].itemInstanceId != undefined) {
-            try {
-                let item = getItem(vault[i].itemInstanceId, vault[i].itemHash);
-                item.bucket = buckets[item.bucket];
-                try {
-                    db.vault[item.bucket].push(item);
-                } catch {
-                    db.vault[item.bucket] = [];
-                    db.vault[item.bucket].push(item);
-                }
-            } catch {
-                // console.log(vault[i].itemInstanceId, "  ", vault[i].itemHash)
-            }
-        }
-    }
+// Sorts db and fills in page
+const sortVault = () => {
     // Sort vault
     let vaultKeys = Object.keys(db.vault);
     for (let i = 0; i < vaultKeys.length; i++) {
@@ -585,6 +502,112 @@ const getVault = async () => {
             }
         }
     }
+}
+
+// Updates db variable
+const getVault = async () => {
+    createNotification("Refreshing inventory!", 1500);
+
+    // Get character information
+    const response = await (await fetch(baseURL +
+        `${membershipType}/Profile/${membershipID}?components=102,200,201,205,206,300,301,302,304,305,310`, globalReq)).json();
+    if (response.status == 401) {
+        console.log("Vault refresh failed!\nRefreshing token\nResponse for debug:" + await response.text());
+        await refreshAccess();
+        getVault();
+    }
+    // Browse to character information variable
+    let data = response.Response.characters.data;
+    let keys = Object.keys(data);
+
+    // Create db character information
+    for (let i = 0; i < keys.length; i++) {
+        let key = keys[i];
+        times.push({ time: new Date(data[key].dateLastPlayed).getTime(), id: key });
+        // Basic character information
+        let character = {
+            id: key,
+            class: data[key].classType,
+            equipped: {},
+            loadouts: [],
+            inventory: {},
+            emblemSmall: data[key].emblemPath,
+            emblemBig: data[key].emblemBackgroundPath
+        }
+
+        // Equipped items
+        let equipped = response.Response.characterEquipment.data[key].items;
+        for (let j = 0; j < equipped.length; j++) {
+            if (equipped[j].itemInstanceId != undefined && buckets[equipped[j].bucketHash] != undefined) {
+                try {
+                    let item = getItem(equipped[j].itemInstanceId, equipped[j].itemHash);
+                    item.bucket = buckets[equipped[j].bucketHash];
+                    try {
+                        character.equipped[item.bucket].push(item);
+                    } catch {
+                        character.equipped[item.bucket] = [];
+                        character.equipped[item.bucket].push(item);
+                    }
+                } catch {
+                    console.error(inventory[j].itemInstanceId, "  ", inventory[j].itemHash)
+                }
+            }
+        }
+
+        // Loadouts
+        // TEMP DISABLED 
+        // character.loadouts = response.Response.characterLoadouts.data[key];
+
+        // Inventory
+        let inventory = response.Response.characterInventories.data[key].items;
+        for (let j = 0; j < inventory.length; j++) {
+            if (inventory[j].itemInstanceId != undefined && buckets[inventory[j].bucketHash] != undefined) {
+                try {
+                    let item = getItem(inventory[j].itemInstanceId, inventory[j].itemHash);
+                    item.bucket = buckets[inventory[j].bucketHash];
+                    try {
+                        character.inventory[item.bucket].push(item);
+                    } catch {
+                        character.inventory[item.bucket] = [];
+                        character.inventory[item.bucket].push(item);
+                    }
+                } catch {
+                    console.error(inventory[j].itemInstanceId, "  ", inventory[j].itemHash)
+                }
+            }
+        }
+        // Sort iventories
+        let inventoryKeys = Object.keys(character.inventory);
+        for (let j = 0; j < inventoryKeys.length; j++) {
+            character.inventory[inventoryKeys[j]].sort(itemCompare);
+        }
+
+        // Push character object to DB
+        db.characters[key] = character;
+    }
+
+    times.sort((a, b) => { return b.time - a.time; });
+
+    // Create db vault informationn
+    let vault = response.Response.profileInventory.data.items;
+    for (let i = 0; i < vault.length; i++) {
+        if (vault[i].itemInstanceId != undefined) {
+            try {
+                let item = getItem(vault[i].itemInstanceId, vault[i].itemHash);
+                item.bucket = buckets[item.bucket];
+                try {
+                    db.vault[item.bucket].push(item);
+                } catch {
+                    db.vault[item.bucket] = [];
+                    db.vault[item.bucket].push(item);
+                }
+            } catch {
+                // console.log(vault[i].itemInstanceId, "  ", vault[i].itemHash)
+            }
+        }
+    }
+
+    sortVault();
 }
 
 // How I want item transfer to actually work
