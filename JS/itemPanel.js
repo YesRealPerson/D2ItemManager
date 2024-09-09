@@ -148,12 +148,14 @@ const showItemInfo = async (item) => {
         totalPerks += perk.length
     })
     perks.forEach(perkColumn => {
+        let column = document.createElement("div");
+        column.className = "perkColumn"
         for (let i = 0; i < perkColumn.length; i++){
             try {
                 let perk = perkColumn[i]
                 let icon = document.createElement("img");
-                let width = (20 / totalPerks);
-                let minWidth = (350 / totalPerks);
+                let width = (20 / perks.length);
+                let minWidth = (350 / perks.length);
                 icon.setAttribute("src", "https://bungie.net"+perk.icon);
                 icon.setAttribute("class", "perk");
                 icon.setAttribute("title", perk.name + "<br>" + perk.description.replace(/\n/g, "<br>"));
@@ -165,12 +167,12 @@ const showItemInfo = async (item) => {
                     icon.style.width = "calc(-4px)";
                     icon.setAttribute("title", "Enhanced " + perk.name + "<br>" + perk.description.replace(/\n/g, "<br>"));
                 }
-                
-                perkElement.appendChild(icon);
+                column.appendChild(icon);
             } catch (err) {
                 console.log(err);
             }
         }
+        perkElement.appendChild(column);
     });
 
     let statsElement = document.getElementById("statName");

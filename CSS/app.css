@@ -476,3 +476,7 @@ svg {
 .inventory > div, .vault > div{
 	float: left;
   }
+.perkColumn{
+	display: flex;
+	flex-direction: column;
+}
