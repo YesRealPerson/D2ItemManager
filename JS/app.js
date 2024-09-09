@@ -307,6 +307,13 @@ const getVault = async () => {
             6: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_530c4c3e7981dc2aefd24fd3293482bf.png",
             7: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_b2fe51a94f3533f97079dfa0d27a4096.png"
         };
+        let armorNames = {
+            47: "Chestplate",
+            49: "Class Item",
+            46: "Gauntlets",
+            45: "Helmet",
+            48: "Legs"
+        }
         // If the item is an armor piece or not
         let armor = item.type[1] != 1;
         // Outer final element
@@ -334,6 +341,9 @@ const getVault = async () => {
                 if (manifests[4][item.type[0]].shortTitle) {
                     title += ` ${manifests[4][item.type[2]].shortTitle}`
                 }
+                if(title[title.length-1] == "s"){
+                    title = title.substring(0,title.length-1);
+                }
                 element.title = title
                 // Fill item info information
                 info.innerHTML = `<img src=${damageTypes[item.element]}> ${item.light}`;
@@ -344,6 +354,9 @@ const getVault = async () => {
                 }
                 if (manifests[4][item.type[0]].shortTitle) {
                     title += ` ${manifests[4][item.type[0]].shortTitle}`
+                }
+                if(armorNames[item.type[1]]){
+                    title += " " + armorNames[item.type[1]];
                 }
                 element.title = title
                 info.innerHTML = `${item.light}`;
