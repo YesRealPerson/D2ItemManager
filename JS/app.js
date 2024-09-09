@@ -695,15 +695,9 @@ const getVault = async () => {
 const transferItem = async (itemHash, stackSize, instance, character, toVault) => {
     return new Promise(async (res, rej) => {
         let data = globalReq;
-        data.data = {
-            "itemReferenceHash": itemHash,
-            "stackSize": stackSize,
-            "itemId": instance,
-            "transferToVault": toVault,
-            "characterId": character,
-            "membershipType": membershipType
-        };
-
+        data.method = "POST";
+        data.body = `itemReferenceHash=${itemHash}&stackSize=${stackSize}&itemId=${instance}&transferToVault=${toVault}&characterId=${character}&membershipType=${membershipType}`
+        console.log(data);
         let response = await fetch(baseURL + "Actions/Items/TransferItem/", data)
         if (response.status == 401) {
             console.log("Transfer item failed!\nRefreshing token\nResponse for debug:" + await response.text());
