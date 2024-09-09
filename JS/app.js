@@ -249,7 +249,7 @@ const getVault = async () => {
                         description: data.displayProperties.description,
                         enhanced: enhanced
                     }])
-                    dupes[perk.plugHash] = 0;
+                    dupes[perk.plugHash] = 1;
                 }
             }
         }
@@ -270,7 +270,7 @@ const getVault = async () => {
                                 description: data.displayProperties.description,
                                 enhanced: enhanced
                             })
-                            dupes[extras[j].plugItemHash] = 0;
+                            dupes[extras[j].plugItemHash] = 1;
                             // console.log(extras[j].plugItemHash)
                             // console.log(data.displayProperties.name)
                         }
@@ -278,6 +278,8 @@ const getVault = async () => {
                 }
             }
         }
+
+        console.log(dupes)
 
         return newItem;
     }

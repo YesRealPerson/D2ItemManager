@@ -150,6 +150,9 @@ const showItemInfo = async (item) => {
     perks.forEach(perkColumn => {
         for (let i = 0; i < perkColumn.length; i++){
             try {
+                icon.setAttribute("src", "https://bungie.net"+perk.icon);
+                icon.setAttribute("class", "perk");
+                icon.setAttribute("title", perk.name + "<br>" + perk.description.replace(/\n/g, "<br>"));
                 let perk = perkColumn[i]
                 let icon = document.createElement("img");
                 let width = (20 / totalPerks);
@@ -160,11 +163,9 @@ const showItemInfo = async (item) => {
                     icon.style.border = "2px solid #eade8b";
                     icon.style.borderRadius = "200px";
                     icon.style.width = "calc(-4px)";
-                    perk.name = "Enhanced " + perk.name
+                    icon.setAttribute("title", "Enhanced " + perk.name + "<br>" + perk.description.replace(/\n/g, "<br>"));
                 }
-                icon.setAttribute("src", "https://bungie.net"+perk.icon);
-                icon.setAttribute("class", "perk");
-                icon.setAttribute("title", perk.name + "<br>" + perk.description.replace(/\n/g, "<br>"));
+                
                 perkElement.appendChild(icon);
             } catch (err) {
                 console.log(err);
