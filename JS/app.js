@@ -288,7 +288,7 @@ const getItem = (id, hash, response) => {
 }
 
 // Makes an item from the vault into an HTML element
-const itemToHTML = (item) => {
+const itemToHTML = (item, index) => {
     /*
     Example Item DIV
     <div id=[item instance id] title=[item name, rarity, item type] onclick=showItemInfo(item)>
@@ -397,6 +397,8 @@ const itemToHTML = (item) => {
         } else { // We are moving from vault
             transferData[3] = undefined;
         }
+        transferData[4] = item.name;
+        transferData[5] = index;
     })
     element.addEventListener("dragend", (event) => {
         document.getElementById("tempStyle").remove();
@@ -424,6 +426,7 @@ const itemCompare = (a, b) => {
 
 const onDrop = async (id) => {
     console.log("Transfer to: ", id);
+    createNotification("Transfering Item: " + transferData[4], 1500)
     let vault = false; //Are we transfering to (true) or from (false) the vault
     if (!transferData[3]) { // Character id is not present from dragstart event
         transferData[3] = id.split(".")[2];
@@ -431,29 +434,24 @@ const onDrop = async (id) => {
         vault = true;
     }
     if ((await transferItem(transferData[0], transferData[1], transferData[2], transferData[3], vault)) == 200) {
-        if (vault) { // Move item from character to vault
-            let character = transferData[3].split(".");
-            if (character[0] == "inventory") {
-                let inventory = db.characters[character[2]].inventory[character[1]]
-                inventory.forEach(item => {
-                    if (item.id == transferData[2]) {
-                        db.vault[character[1]].push(item)
-                        delete item
-                    }
-                });
-
-            }
-        } else { // Move item from vault to character
-            let location = id.split(".");
-            let inventory = db.vault[location[1]]
-            inventory.forEach(item => {
-                if (item.id == transferData[2]) {
-                    db.vault[location[1]].push(item)
-                    delete item
-                }
-            });
+        createNotification("Transfered Item: " + transferData[4], 1500);
+        if(vault){
+            // Grab and delete item from character
+            // database > characters > character id > inventory > bucket name > index
+            let item = db.characters[transferData[3]].inventory[id.split(".")[1]][transferData[5]]
+            delete db.characters[transferData[3]].inventory[id.split(".")[1]][transferData[5]]
+            // Push to correct vault bucket
+            db.vault[id.split(".")[1]].push(item);
+        }else{
+            // Grab and delete item from vault
+            // Database > Vault > Bucket Name > Index
+            let item = db.vault[id.split(".")[1]][transferData[5]]
+            delete db.vault[id.split(".")[1]][transferData[5]]
+            db.characters[transferData[3]].inventory[id.split(".")[1]].push(item)
         }
         sortVault();
+    }else{
+        createNotification("Item Transfer Failed!", 1500)
     }
 
 }
@@ -530,7 +528,7 @@ const sortVault = () => {
             // Fill character inventory bucket
             try {
                 for (let k = 0; k < character.inventory[bucketName].length; k++) {
-                    characterElement.appendChild(itemToHTML(character.inventory[bucketName][k]));
+                    characterElement.appendChild(itemToHTML(character.inventory[bucketName][k], k));
                 }
                 bucketElements[j].appendChild(characterElement)
             } catch (err) {
@@ -543,7 +541,7 @@ const sortVault = () => {
                 vaultElement.id = `vault.${bucketName}`
                 vaultElement.addEventListener("drop", (event) => {
                     event.preventDefault();
-                    onDrop(`vault.${bucketName}.${id}`);
+                    onDrop(`vault.${bucketName}`);
                 })
                 vaultElement.addEventListener("dragover", (event) => {
                     event.preventDefault();
@@ -551,7 +549,7 @@ const sortVault = () => {
                 // Fill vault bucket, only needs to be done once
                 try {
                     for (let k = 0; k < db.vault[bucketName].length; k++) {
-                        vaultElement.appendChild(itemToHTML(db.vault[bucketName][k]));
+                        vaultElement.appendChild(itemToHTML(db.vault[bucketName][k], k));
                     }
                     bucketElements[j].appendChild(vaultElement)
                 } catch (err) {
