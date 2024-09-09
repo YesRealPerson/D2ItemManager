@@ -385,10 +385,9 @@ const itemToHTML = (item) => {
         tempStyle.id = "tempStyle"
         tempStyle.innerHTML = ".item {pointer-events: none;}"
         document.body.appendChild(tempStyle);
-        console.log("drag start\n"+JSON.stringify(event))
+        console.log(`Transfer from: ${document.getElementById(item.id).parentElement.id}`)
     })
     element.addEventListener("dragend", (event) => {
-        console.log("drag end\n"+JSON.stringify(event))
         document.getElementById("tempStyle").remove();
     })
     return element;
@@ -461,9 +460,23 @@ const sortVault = () => {
             let equippedElement = document.createElement("div");
             equippedElement.className = "equipped";
             equippedElement.id = `equipped.${bucketName}.${id}`
+            equippedElement.addEventListener("drop",(event) => {
+                event.preventDefault();
+                console.log(`Transfer to: equipped.${bucketName}.${id}`);
+            })
+            equippedElement.addEventListener("dragover",(event) => {
+                event.preventDefault();
+            })
             let characterElement = document.createElement("div");
             characterElement.className = "inventory";
             characterElement.id = `inventory.${bucketName}.${id}`
+            characterElement.addEventListener("drop",(event) => {
+                event.preventDefault();
+                console.log(`Transfer to: inventory.${bucketName}.${id}`);
+            })
+            characterElement.addEventListener("dragover",(event) => {
+                event.preventDefault();
+            })
 
             // Fill equipped Item
             try {
@@ -488,6 +501,13 @@ const sortVault = () => {
                 let vaultElement = document.createElement("div");
                 vaultElement.className = "vault"
                 vaultElement.id = `vault.${bucketName}`
+                vaultElement.addEventListener("drop",(event) => {
+                    event.preventDefault();
+                    console.log(`Transfer to: vault.${bucketName}`);
+                })
+                vaultElement.addEventListener("dragover",(event) => {
+                    event.preventDefault();
+                })
                 // Fill vault bucket, only needs to be done once
                 try {
                     for (let k = 0; k < db.vault[bucketName].length; k++) {

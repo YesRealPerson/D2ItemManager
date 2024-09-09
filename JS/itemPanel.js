@@ -125,7 +125,7 @@ const showItemInfo = async (item) => {
     document.getElementById("panelName").innerHTML = name;
     // Champion types
     if (item.breakerType != 0) {
-        document.getElementById("panelName").innerHTML += "<br>" + breakerNames[item.champion] + "  <img style=\"width:15px; height: 15px; top:2px; position:relative;\" src = \"" + breakers[item.champion] + "\">";
+        document.getElementById("panelName").innerHTML += "<br>" + breakerNames[item.breakerType] + "  <img style=\"width:15px; height: 15px; top:2px; position:relative;\" src = \"" + breakers[item.breakerType] + "\">";
     }
     document.getElementById("flavor").innerText = style;
     // if(item.tags != undefined && item.tags.length != 0){
