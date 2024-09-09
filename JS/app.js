@@ -517,7 +517,7 @@ const getVault = async () => {
         for (let j = 0; j < bucketElements.length; j++) {
             let inventories = bucketElements[j].children;
             let bucketName = bucketElements[j].id;
-            let equippedElement = inventories[0][id];
+            let equippedElement = inventories[0].children[i];
             equippedElement.innerHTML = "";
             try {
                 equippedElement.appendChild(itemToHTML(character.equipped[bucketName][0]))
@@ -538,7 +538,7 @@ const getVault = async () => {
 
             // Fill character inventory bucket
             // Character inventory element
-            let characterElement = inventories[1][id];
+            let characterElement = inventories[1].children[i];
             characterElement.innerHTML = "";
             try {
                 for (let k = 0; k < character.inventory[bucketName].length; k++) {
