@@ -234,12 +234,13 @@ const getVault = async () => {
         // TODO: sort keys by specific order rather than by alphabetical
         newItem.stats.sort((a, b) => ("" + a.name).localeCompare(("" + b.name)))
 
+        let dupes = {}
         // Perks
         if (perks != undefined) {
             perks = perks.sockets;
             for (let i = 0; i < perks.length; i++) {
                 let perk = perks[i];
-                if (perk.isVisible) {
+                if (perk.isVisible && !dupes[perk.plugHash]) {
                     let data = manifests[0][perk.plugHash];
                     let enhanced = data.itemTypeAndTierDisplayName == "Uncommon Enhanced Trait";
                     newItem.perks.push([{
@@ -248,6 +249,7 @@ const getVault = async () => {
                         description: data.displayProperties.description,
                         enhanced: enhanced
                     }])
+                    dupes[perk.plugHash] = 0;
                 }
             }
         }
@@ -258,7 +260,7 @@ const getVault = async () => {
                 let key = keys[i];
                 let extras = perksExtra[key];
                 for (let j = 0; j < extras.length; j++) {
-                    if (extras[j].canInsert && extras[j].enabled && newItem.perks[key] != 0) {
+                    if (extras[j].canInsert && extras[j].enabled && newItem.perks[key] != 0 && !dupes[extras[j].plugItemHash]) {
                         let data = manifests[0][extras[j].plugItemHash];
                         let enhanced = data.itemTypeAndTierDisplayName == "Uncommon Enhanced Trait";
                         if (data.itemTypeDisplayName.indexOf("Trait") != -1) {
@@ -268,6 +270,7 @@ const getVault = async () => {
                                 description: data.displayProperties.description,
                                 enhanced: enhanced
                             })
+                            dupes[extras[j].plugItemHash] = 0;
                             // console.log(extras[j].plugItemHash)
                             // console.log(data.displayProperties.name)
                         }

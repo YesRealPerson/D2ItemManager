@@ -143,27 +143,33 @@ const showItemInfo = async (item) => {
 
     let perkElement = document.getElementById("perks");
     perkElement.innerHTML = "";
+    let totalPerks = 0;
+    perks.forEach(perk => {
+        totalPerks += perk.length
+    })
     perks.forEach(perkColumn => {
-        perkColumn.forEach(perk => {
+        for (let i = 0; i < perkColumn.length; i++){
             try {
+                let perk = perkColumn[i]
                 let icon = document.createElement("img");
-                icon.setAttribute("src", "https://bungie.net"+perk.icon);
-                icon.setAttribute("class", "perk");
-                icon.setAttribute("title", perk.name + "<br>" + perk.description.replace(/\n/g, "<br>"));
-                let width = (20 / perks.length);
-                let minWidth = (350 / perks.length);
+                let width = (20 / totalPerks);
+                let minWidth = (350 / totalPerks);
                 icon.style.width = "calc(" + width + "vw)";
                 icon.style.minWidth = minWidth + "px";
-                if (perk.name.indexOf("Enhanced") != -1) {
+                if (perk.enhanced) {
                     icon.style.border = "2px solid #eade8b";
                     icon.style.borderRadius = "200px";
                     icon.style.width = "calc(-4px)";
+                    perk.name = "Enhanced " + perk.name
                 }
+                icon.setAttribute("src", "https://bungie.net"+perk.icon);
+                icon.setAttribute("class", "perk");
+                icon.setAttribute("title", perk.name + "<br>" + perk.description.replace(/\n/g, "<br>"));
                 perkElement.appendChild(icon);
             } catch (err) {
                 console.log(err);
             }
-        })
+        }
     });
 
     let statsElement = document.getElementById("statName");
