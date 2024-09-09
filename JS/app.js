@@ -241,10 +241,12 @@ const getVault = async () => {
                 let perk = perks[i];
                 if (perk.isVisible) {
                     let data = manifests[0][perk.plugHash];
+                    let enhanced = data.itemTypeAndTierDisplayName == "Uncommon Enhanced Trait";
                     newItem.perks.push([{
                         name: data.displayProperties.name,
                         icon: data.displayProperties.icon,
-                        description: data.displayProperties.description
+                        description: data.displayProperties.description,
+                        enhanced: enhanced
                     }])
                 }
             }
@@ -258,11 +260,13 @@ const getVault = async () => {
                 for (let j = 0; j < extras.length; j++) {
                     if (extras[j].canInsert && extras[j].enabled && newItem.perks[key] != 0) {
                         let data = manifests[0][extras[j].plugItemHash];
+                        let enhanced = data.itemTypeAndTierDisplayName == "Uncommon Enhanced Trait";
                         if (data.itemTypeDisplayName.indexOf("Trait") != -1) {
                             newItem.perks[key].push({
                                 name: data.displayProperties.name,
                                 icon: data.displayProperties.icon,
-                                description: data.displayProperties.description
+                                description: data.displayProperties.description,
+                                enhanced: enhanced
                             })
                             // console.log(extras[j].plugItemHash)
                             // console.log(data.displayProperties.name)

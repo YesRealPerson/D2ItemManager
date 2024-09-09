@@ -147,7 +147,7 @@ const showItemInfo = async (item) => {
         perkColumn.forEach(perk => {
             try {
                 let icon = document.createElement("img");
-                icon.setAttribute("src", perk.icon);
+                icon.setAttribute("src", "https://bungie.net"+perk.icon);
                 icon.setAttribute("class", "perk");
                 icon.setAttribute("title", perk.name + "<br>" + perk.description.replace(/\n/g, "<br>"));
                 let width = (20 / perks.length);
