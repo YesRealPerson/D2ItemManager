@@ -487,9 +487,21 @@ const getVault = async () => {
     */
     let bucketElements = document.getElementsByClassName("bucket");
 
+    // Clear all bucket elements
+    for(let i = 0; i < bucketElements.length; i++){
+        bucketElements[i].innerHTML = "";
+
+        // given total number of characters change column type of bucket
+        let template = "";
+        for(let j = 0; j < times.length; j++){
+            template += "60px 175px ";
+        }
+        template+="auto";
+        bucketElements[i].style.gridTemplateColumns = template;
+    }
+
     // Loop through each character, times is sorted based on which character was last logged into
     for (let i = 0; i < times.length; i++) {
-        ;
         // Character zone headers
         let id = times[i].id;
         let character = db.characters[id]
@@ -501,7 +513,6 @@ const getVault = async () => {
 
 
         for (let j = 0; j < bucketElements.length; j++) {
-            bucketElements[j].innerHTML = "";
             let bucketName = bucketElements[j].id;
             let equippedElement = document.createElement("div");
             equippedElement.className = "equipped";
