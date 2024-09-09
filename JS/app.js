@@ -168,6 +168,7 @@ const refreshAccess = async () => {
 
 // Updates vault variable
 const getVault = async () => {
+    createNotification("Refreshing inventory!", 1500);
     // buckets we actually want to read
     const buckets = {
         1498876634: "kinetic",
@@ -350,8 +351,8 @@ const getVault = async () => {
                 if (manifests[4][item.type[0]].shortTitle) {
                     title += ` ${manifests[4][item.type[2]].shortTitle}`
                 }
-                if(title[title.length-1] == "s"){
-                    title = title.substring(0,title.length-1);
+                if (title[title.length - 1] == "s") {
+                    title = title.substring(0, title.length - 1);
                 }
                 element.title = title
                 // Fill item info information
@@ -364,7 +365,7 @@ const getVault = async () => {
                 if (manifests[4][item.type[0]].shortTitle) {
                     title += ` ${manifests[4][item.type[0]].shortTitle}`
                 }
-                if(armorNames[item.type[1]]){
+                if (armorNames[item.type[1]]) {
                     title += " " + armorNames[item.type[1]];
                 }
                 element.title = title
@@ -382,7 +383,7 @@ const getVault = async () => {
 
     // Given two items compares them for sorting
     const itemCompare = (a, b) => {
-        let lightDiff =  b.light - a.light;
+        let lightDiff = b.light - a.light;
         let rareDiff = b.rarity - a.rarity;
         // Depending on user setting sorts by rarity first or by power level first
         if (sort) {
@@ -401,7 +402,11 @@ const getVault = async () => {
     // Get character information
     const response = await (await fetch(baseURL +
         `${membershipType}/Profile/${membershipID}?components=102,200,201,205,206,300,301,302,304,305,310`, globalReq)).json();
-
+    if (response.status == 401) {
+        console.log("Vault refresh failed!\nRefreshing token\nResponse for debug:" + await response.text());
+        await refreshAccess();
+        getVault();
+    }
     // Browse to character information variable
     let data = response.Response.characters.data;
     let keys = Object.keys(data);
@@ -490,7 +495,7 @@ const getVault = async () => {
                     db.vault[item.bucket].push(item);
                 }
             } catch {
-                console.log(vault[i].itemInstanceId, "  ", vault[i].itemHash)
+                // console.log(vault[i].itemInstanceId, "  ", vault[i].itemHash)
             }
         }
     }
@@ -532,6 +537,7 @@ const getVault = async () => {
         element.innerText = classTypes[character.class];
         element.style.backgroundImage = `url("https://www.bungie.net${character.emblemBig}")`
         element.className = "selector classes"
+        document.getElementById("characters").innerHTML = "";
         document.getElementById("characters").appendChild(element);
 
 
@@ -551,7 +557,7 @@ const getVault = async () => {
                 bucketElements[j].appendChild(equippedElement)
             } catch (err) {
                 console.log(`bucket id ${bucketName} does not exist in character ${id} equipped!\nError: ${err}`)
-            } 
+            }
 
             // Fill character inventory bucket
             try {

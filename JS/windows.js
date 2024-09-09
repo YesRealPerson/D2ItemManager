@@ -3,7 +3,7 @@
 // When true makes stat bars colored
 let colorBars = false;
 const toggleColor = () => {
-    color = !color;
+    colorBars = !colorBars;
     if (color) {
         document.getElementById("colorToggle").title = "Colored stats"
         document.getElementById("colorToggle").innerText = "Remove color from stat bars"

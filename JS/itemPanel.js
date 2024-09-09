@@ -207,7 +207,7 @@ const showItemInfo = async (item) => {
         if(armorNames[item.type[1]]){
             temp += " " + armorNames[item.type[1]];
         }
-        document.getElementById("type").innerHTML =  + "<br>";
+        document.getElementById("type").innerHTML = temp + "<br>";
         stats.sort((s1, s2) => {
             //armor comparison function
             let order = ["Mobility", "Resilience", "Recovery", "Discipline", "Intellect", "Strength"];
