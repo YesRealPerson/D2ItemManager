@@ -69,13 +69,11 @@ svg {
 }
 
 .darken {
-	bottom: 0;
-	box-sizing: border-box;
-	height: 100%;
-	left: 0;
-	pointer-events: none;
 	position: absolute;
 	width: 100%;
+	height: 100%;
+	top:0;
+	left:0;
 }
 
 .equip {
@@ -97,20 +95,6 @@ svg {
 
 .hoverwrap .darken {
 	background-color: rgba(0, 0, 0, var(--opacity));
-}
-
-.hoverwrap img {
-	height: auto;
-	width: 100%;
-}
-
-.hoverwrap {
-	float: left;
-	height: 100px;
-	margin: 0;
-	padding: 0;
-	transform: scale(100%);
-	width: 100px;
 }
 
 .hoverwrap:hover .darken {
@@ -490,6 +474,6 @@ svg {
 	z-index: 5000;
 }
 
-.nolight div div div {
+.nolight div div div div {
 	display: none;
 }

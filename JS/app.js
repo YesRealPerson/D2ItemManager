@@ -317,7 +317,7 @@ const getVault = async () => {
         element.addEventListener("click", () => { showItemInfo(item) });
         // Set item id as unique indentifier
         element.id = item.id;
-        element.className = "item"
+        element.className = "item hoverwrap"
 
         // push watermark and push icon
         if (item.watermark) {
@@ -350,6 +350,9 @@ const getVault = async () => {
             info.innerHTML = `${item.light}`;
         }
         element.appendChild(info);
+        let darken = document.createElement("div");
+        darken.className = "darken"
+        element.appendChild(darken);
 
         return element;
     }
@@ -451,20 +454,11 @@ const getVault = async () => {
     times.sort((a, b) => { return b.time - a.time; });
 
     // Vault
-    let j = 0;
     let vault = response.Response.profileInventory.data.items;
     for (let i = 0; i < vault.length; i++) {
         if (vault[i].itemInstanceId != undefined) {
             try {
                 let item = getItem(vault[i].itemInstanceId, vault[i].itemHash);
-                if (j < 10) {
-                    console.log(item.bucket)
-                    console.log(buckets[vault[i].bucket])
-                    if (!item.bucket) {
-                        console.log(vault[i])
-                    }
-                    j++
-                }
                 item.bucket = buckets[item.bucket];
                 try {
                     db.vault[item.bucket].push(item);
@@ -505,47 +499,48 @@ const getVault = async () => {
         element.className = "selector classes"
         document.getElementById("characters").appendChild(element);
 
-        for (let j = 0; j < bucketElements.length; j++){
-            let inventories = bucketElements[j].children;
-            for(let k = 0; k < 2; k++){
-                let charinven = document.createElement("div");
-                charinven.className = id;
-                inventories[k].appendChild(charinven)
-            }
-        }
 
         for (let j = 0; j < bucketElements.length; j++) {
-            let inventories = bucketElements[j].children;
+            bucketElements[j].innerHTML = "";
             let bucketName = bucketElements[j].id;
-            let equippedElement = inventories[0].children[i];
-            equippedElement.innerHTML = "";
+            let equippedElement = document.createElement("div");
+            equippedElement.className = "equipped";
+            equippedElement.id = `equipped.${bucketName}.${id}`
+            let characterElement = document.createElement("div");
+            characterElement.className = "inventory";
+            characterElement.id = `inventory.${bucketName}.${id}`
+
+            // Fill equipped Item
             try {
                 equippedElement.appendChild(itemToHTML(character.equipped[bucketName][0]))
+                bucketElements[j].appendChild(equippedElement)
             } catch (err) {
                 console.log(`bucket id ${bucketName} does not exist in character ${id} equipped!\nError: ${err}`)
             }
 
-            // Fill vault bucket
-            let vaultElement = inventories[2];
-            vaultElement.innerHTML = "";
-            try {
-                for (let k = 0; k < db.vault[bucketName].length; k++) {
-                    vaultElement.appendChild(itemToHTML(db.vault[bucketName][k]));
-                }
-            } catch (err) {
-                console.log(`bucket id ${bucketName} does not exist in vault!\nError: ${err}`)
-            }
-
             // Fill character inventory bucket
-            // Character inventory element
-            let characterElement = inventories[1].children[i];
-            characterElement.innerHTML = "";
             try {
                 for (let k = 0; k < character.inventory[bucketName].length; k++) {
                     characterElement.appendChild(itemToHTML(character.inventory[bucketName][k]));
                 }
+                bucketElements[j].appendChild(characterElement)
             } catch (err) {
                 console.log(`bucket id ${bucketName} does not exist in character ${id} inventory!\nError: ${err}`)
+            } 
+
+            if (i == times.length - 1) {
+                let vaultElement = document.createElement("div");
+                vaultElement.className = "vault"
+                vaultElement.id = `vault.${bucketName}`
+                // Fill vault bucket, only needs to be done once
+                try {
+                    for (let k = 0; k < db.vault[bucketName].length; k++) {
+                        vaultElement.appendChild(itemToHTML(db.vault[bucketName][k]));
+                    }
+                    bucketElements[j].appendChild(vaultElement)
+                } catch (err) {
+                    console.log(`bucket id ${bucketName} does not exist in vault!\nError: ${err}`)
+                }
             }
         }
     }
