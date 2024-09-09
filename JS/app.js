@@ -430,26 +430,26 @@ const onDrop = async (id) => {
     } else {
         vault = true;
     }
-    if((await transferItem(transferData[0], transferData[1], trasnferData[2], transferData[3], vault))==200){
-        if(vault){ // Move item from character to vault
+    if ((await transferItem(transferData[0], transferData[1], transferData[2], transferData[3], vault)) == 200) {
+        if (vault) { // Move item from character to vault
             let character = transferData[3].split(".");
-            if(character[0] == "inventory"){
+            if (character[0] == "inventory") {
                 let inventory = db.characters[character[2]].inventory[character[1]]
                 inventory.forEach(item => {
-                    if(item.id == transferData[2]){
+                    if (item.id == transferData[2]) {
                         db.vault[character[1]].push(item)
                         delete item
                     }
                 });
-                
-            }else{
+
+            } else {
                 console.log("What.")
             }
-        }else{ // Move item from vault to character
+        } else { // Move item from vault to character
             let location = id.split(".");
             let inventory = db.vault[location[1]]
             inventory.forEach(item => {
-                if(item.id == transferData[2]){
+                if (item.id == transferData[2]) {
                     db.vault[character[1]].push(item)
                     delete item
                 }
@@ -754,7 +754,13 @@ const equipItem = async (instance, character) => {
     }
 
     // Fetch Destiny 2 account information & set all relevant variables
-    let linkedProfiles = await (await fetch(baseURL + "254/Profile/" + accID + "/LinkedProfiles", globalReq)).json();
+    let linkedProfiles = {}
+    try {
+        linkedProfiles = await (await fetch(baseURL + "254/Profile/" + accID + "/LinkedProfiles", globalReq)).json();
+    } catch {
+        await refreshAccess()
+        linkedProfiles = await (await fetch(baseURL + "254/Profile/" + accID + "/LinkedProfiles", globalReq)).json();
+    }
     linkedProfiles = linkedProfiles.Response.profiles[0];
     membershipID = linkedProfiles.membershipId;
     membershipType = linkedProfiles.membershipType;
