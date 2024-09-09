@@ -308,7 +308,7 @@ const getVault = async () => {
             5: "https://www.bungie.net/img/misc/missing_icon_d2.png",
             6: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_530c4c3e7981dc2aefd24fd3293482bf.png",
             7: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_b2fe51a94f3533f97079dfa0d27a4096.png"
-        }
+        };
         // If the item is an armor piece or not
         let armor = item.type[1] != 1;
         // Outer final element
@@ -326,41 +326,45 @@ const getVault = async () => {
             element.innerHTML = `<img src=${root + item.icon}>`;
         }
         let info = document.createElement("div");
-        if (!armor) {
-            // Set title of element
-            let title = `${item.name}`;
-            if (tierTypes[item.rarity]) {
-                title += `<br>${tierTypes[item.rarity]}`
+        if (item.type[1] != 50) { // If the item is not a class item
+            if (!armor) {
+                // Set title of element
+                let title = `${item.name}`;
+                if (tierTypes[item.rarity]) {
+                    title += `<br>${tierTypes[item.rarity]}`
+                }
+                if (manifests[4][item.type[0]].shortTitle) {
+                    title += ` ${manifests[4][item.type[2]].shortTitle}`
+                }
+                element.title = title
+                // Fill item info information
+                info.innerHTML = `<img src=${damageTypes[item.element]}> ${item.light}`;
+            } else {
+                let title = `${item.name}`;
+                if (tierTypes[item.rarity]) {
+                    title += `<br>${tierTypes[item.rarity]}`
+                }
+                if (manifests[4][item.type[0]].shortTitle) {
+                    title += ` ${manifests[4][item.type[0]].shortTitle}`
+                }
+                element.title = title
+                info.innerHTML = `${item.light}`;
             }
-            if (manifests[4][item.type[0]].shortTitle) {
-                title += ` ${manifests[4][item.type[2]].shortTitle}`
-            }
-            element.title = title
-            // Fill item info information
-            info.innerHTML = `<img src=${damageTypes[item.element]}> ${item.light}`;
-        } else {
-            let title = `${item.name}`;
-            if (tierTypes[item.rarity]) {
-                title += `<br>${tierTypes[item.rarity]}`
-            }
-            if (manifests[4][item.type[0]].shortTitle) {
-                title += ` ${manifests[4][item.type[0]].shortTitle}`
-            }
-            element.title = title
-            info.innerHTML = `${item.light}`;
         }
+        info.className = "info"
         element.appendChild(info);
         let darken = document.createElement("div");
         darken.className = "darken"
+        darken.style.pointerEvents = "none";
         element.appendChild(darken);
-
+        element.onclick = showItemInfo(item);
         return element;
     }
 
     // Given two items compares them for sorting
     const itemCompare = (a, b) => {
-        let lightDiff = a.light - b.light;
-        let rareDiff = a.rarity - b.rarity;
+        let lightDiff =  b.light - a.light;
+        let rareDiff = b.rarity - a.rarity;
         // Depending on user setting sorts by rarity first or by power level first
         if (sort) {
             if (lightDiff != 0) {
@@ -488,15 +492,15 @@ const getVault = async () => {
     let bucketElements = document.getElementsByClassName("bucket");
 
     // Clear all bucket elements
-    for(let i = 0; i < bucketElements.length; i++){
+    for (let i = 0; i < bucketElements.length; i++) {
         bucketElements[i].innerHTML = "";
 
         // given total number of characters change column type of bucket
         let template = "";
-        for(let j = 0; j < times.length; j++){
+        for (let j = 0; j < times.length; j++) {
             template += "60px 175px ";
         }
-        template+="auto";
+        template += "auto";
         bucketElements[i].style.gridTemplateColumns = template;
     }
 
@@ -523,11 +527,12 @@ const getVault = async () => {
 
             // Fill equipped Item
             try {
-                equippedElement.appendChild(itemToHTML(character.equipped[bucketName][0]))
+                let item = itemToHTML(character.equipped[bucketName][0]);
+                equippedElement.appendChild(item)
                 bucketElements[j].appendChild(equippedElement)
             } catch (err) {
                 console.log(`bucket id ${bucketName} does not exist in character ${id} equipped!\nError: ${err}`)
-            }
+            } 
 
             // Fill character inventory bucket
             try {
@@ -537,7 +542,7 @@ const getVault = async () => {
                 bucketElements[j].appendChild(characterElement)
             } catch (err) {
                 console.log(`bucket id ${bucketName} does not exist in character ${id} inventory!\nError: ${err}`)
-            } 
+            }
 
             if (i == times.length - 1) {
                 let vaultElement = document.createElement("div");

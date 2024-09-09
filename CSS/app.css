@@ -104,11 +104,6 @@ svg {
 	pointer-events: none;
 }
 
-.inventory {
-	grid-column: 2/3;
-	min-width: 160px;
-}
-
 .item {
 	height: 67px;
 	width: 50px;
@@ -471,7 +466,7 @@ svg {
 	z-index: 5000;
 }
 
-.nolight div div div {
+.nolight div div .info {
 	display: none;
 }
 
