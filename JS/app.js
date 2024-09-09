@@ -283,8 +283,6 @@ const getItem = (id, hash, response) => {
         }
     }
 
-    console.log(dupes)
-
     return newItem;
 }
 
@@ -387,10 +385,10 @@ const itemToHTML = (item) => {
         tempStyle.id = "tempStyle"
         tempStyle.innerHTML = ".item {pointer-events: none;}"
         document.body.appendChild(tempStyle);
-        console.log("drag start\n"+event)
+        console.log("drag start\n"+JSON.stringify(event))
     })
     element.addEventListener("dragend", (event) => {
-        console.log("drag end\n"+event)
+        console.log("drag end\n"+JSON.stringify(event))
         document.getElementById("tempStyle").remove();
     })
     return element;
