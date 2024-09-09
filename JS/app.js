@@ -528,6 +528,7 @@ const getVault = async () => {
         bucketElements[i].style.gridTemplateColumns = template;
     }
 
+    document.getElementById("characters").innerHTML = "";
     // Loop through each character, times is sorted based on which character was last logged into
     for (let i = 0; i < times.length; i++) {
         // Character zone headers
@@ -537,7 +538,6 @@ const getVault = async () => {
         element.innerText = classTypes[character.class];
         element.style.backgroundImage = `url("https://www.bungie.net${character.emblemBig}")`
         element.className = "selector classes"
-        document.getElementById("characters").innerHTML = "";
         document.getElementById("characters").appendChild(element);
 
 
