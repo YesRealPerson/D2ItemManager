@@ -201,7 +201,7 @@ const getVault = async () => {
         // Basic Information from the manifest
         let newItem = {
             id: id,
-            bucketHash: itemDef.inventory.bucketTypeHash,
+            bucket: buckets[itemDef.inventory.bucketTypeHash],
             name: itemDef.displayProperties.name,
             flavor: itemDef.flavorText,
             icon: itemDef.displayProperties.icon,
@@ -266,8 +266,8 @@ const getVault = async () => {
                                 icon: data.displayProperties.icon,
                                 description: data.displayProperties.description
                             })
-                            console.log(extras[j].plugItemHash)
-                            console.log(data.displayProperties.name)
+                            // console.log(extras[j].plugItemHash)
+                            // console.log(data.displayProperties.name)
                         }
                     }
                 }
@@ -437,7 +437,7 @@ const getVault = async () => {
         if (vault[i].itemInstanceId != undefined) {
             try {
                 let item = getItem(vault[i].itemInstanceId, vault[i].itemHash);
-                item.bucket = buckets[vault[i].bucketHash];
+                item.bucket = buckets[item.bucketHash];
                 try {
                     db.vault[item.bucket].push(item);
                 } catch {
@@ -486,6 +486,7 @@ const getVault = async () => {
                     equippedElement.appendChild(itemToHTML(character.equipped[bucketName][0]))
                 } catch (err){
                     console.log(`bucket id ${bucketName} does not exist in character ${id} equipped!\nError: ${err}`)
+                    console.trace();
                 }
 
                 // Fill vault bucket
@@ -497,6 +498,7 @@ const getVault = async () => {
                     }
                 } catch (err){
                     console.log(`bucket id ${bucketName} does not exist in vault!\nError: ${err}`)
+                    console.trace();
                 }
             }
 
@@ -506,10 +508,11 @@ const getVault = async () => {
             characterElement.innerHTML = "";
             try {
                 for (let k = 0; k < character.inventory[bucketName].length; k++) {
-                    characterElement.appendChild(itemToHTML(character.inventory[k]));
+                    characterElement.appendChild(itemToHTML(character.inventory[bucketName][k]));
                 }
             } catch (err){
                 console.log(`bucket id ${bucketName} does not exist in character ${id} inventory!\nError: ${err}`)
+                console.trace();
             }
         }
     }
@@ -570,6 +573,7 @@ const equipItem = async (instance, character) => {
 }
 // Main function start
 (async function () {
+    createNotification("Downloading latest information from Bungie!", 1000);
     let gotManifest = false;
     while (!gotManifest) {
         // Get manifests
