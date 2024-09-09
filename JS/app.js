@@ -214,6 +214,7 @@ const getVault = async () => {
             element: instances.damageType,
             perks: [],
             stats: [],
+            bucket: itemDef.inventory.bucketTypeHash
         }
 
         // Stats
@@ -316,12 +317,13 @@ const getVault = async () => {
         element.addEventListener("click", () => { showItemInfo(item) });
         // Set item id as unique indentifier
         element.id = item.id;
+        element.className = "item"
 
         // push watermark and push icon
         if(item.watermark){
-        element.innerHTML = `<img src=${root + item.watermark}><img src=${root + item.icon}>`;
+        element.innerHTML = `<img src=${root + item.icon}><img src=${root + item.watermark}>`;
         }else{
-            element.innerHTML = `<img src="/IMG/blank.png"><img src=${root + item.icon}>`;
+            element.innerHTML = `<img src=${root + item.icon}>`;
         }
         let info = document.createElement("div");
         if (!armor) {
@@ -335,7 +337,7 @@ const getVault = async () => {
             }
             element.title = title
             // Fill item info information
-            info.innerHTML = `<img src=${root + damageTypes[item.element]}> ${item.light}`;
+            info.innerHTML = `<img src=${damageTypes[item.element]}> ${item.light}`;
         } else {
             let title = `${item.name}`;
             if(tierTypes[item.rarity]){
@@ -454,16 +456,16 @@ const getVault = async () => {
     for (let i = 0; i < vault.length; i++) {
         if (vault[i].itemInstanceId != undefined) {
             try {
+                let item = getItem(vault[i].itemInstanceId, vault[i].itemHash);
                 if(j < 10){
-                    console.log(vault[i].bucketHash)
-                    console.log(buckets[vault[i].bucketHash])
-                    if(!vault[i].bucketHash){
+                    console.log(item.bucket)
+                    console.log(buckets[vault[i].bucket])
+                    if(!item.bucket){
                         console.log(vault[i])
                     }
                     j++
                 }
-                let item = getItem(vault[i].itemInstanceId, vault[i].itemHash);
-                item.bucket = buckets[vault[i].bucketHash];
+                item.bucket = buckets[item.bucket];
                 try {
                     db.vault[item.bucket].push(item);
                 } catch {
