@@ -150,13 +150,13 @@ const showItemInfo = async (item) => {
     perks.forEach(perkColumn => {
         for (let i = 0; i < perkColumn.length; i++){
             try {
-                icon.setAttribute("src", "https://bungie.net"+perk.icon);
-                icon.setAttribute("class", "perk");
-                icon.setAttribute("title", perk.name + "<br>" + perk.description.replace(/\n/g, "<br>"));
                 let perk = perkColumn[i]
                 let icon = document.createElement("img");
                 let width = (20 / totalPerks);
                 let minWidth = (350 / totalPerks);
+                icon.setAttribute("src", "https://bungie.net"+perk.icon);
+                icon.setAttribute("class", "perk");
+                icon.setAttribute("title", perk.name + "<br>" + perk.description.replace(/\n/g, "<br>"));
                 icon.style.width = "calc(" + width + "vw)";
                 icon.style.minWidth = minWidth + "px";
                 if (perk.enhanced) {
