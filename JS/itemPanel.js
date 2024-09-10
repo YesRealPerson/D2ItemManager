@@ -92,8 +92,6 @@ const showItemInfo = async (item) => {
         45: "Helmet",
         48: "Legs"
     }
-    let breakers = ["", "https://www.bungie.net/common/destiny2_content/icons/DestinyBreakerTypeDefinition_07b9ba0194e85e46b258b04783e93d5d.png", "https://www.bungie.net/common/destiny2_content/icons/DestinyBreakerTypeDefinition_da558352b624d799cf50de14d7cb9565.png", "https://www.bungie.net/common/destiny2_content/icons/DestinyBreakerTypeDefinition_825a438c85404efd6472ff9e97fc7251.png"];
-    let breakerNames = ["", "Anti-Barrier", "Overload Rounds", "Unstoppable Rounds"];
     draggable.style.visibility = "visible";
     visibility = true;
     let name = item.name;

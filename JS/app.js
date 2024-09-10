@@ -73,6 +73,10 @@ transferData = [];
 // Maps for specific information 
 //(yes this is still from a manifest but it's data that I doubt will ever change and I only really need a small amount of)
 
+// Champion Information
+let breakers = ["", "https://www.bungie.net/common/destiny2_content/icons/DestinyBreakerTypeDefinition_07b9ba0194e85e46b258b04783e93d5d.png", "https://www.bungie.net/common/destiny2_content/icons/DestinyBreakerTypeDefinition_da558352b624d799cf50de14d7cb9565.png", "https://www.bungie.net/common/destiny2_content/icons/DestinyBreakerTypeDefinition_825a438c85404efd6472ff9e97fc7251.png"];
+let breakerNames = ["", "Anti-Barrier", "Overload Rounds", "Unstoppable Rounds"];
+
 // For mapping class IDs to actual class names
 let classTypes = ["Titan", "Hunter", "Warlock"]
 
@@ -358,7 +362,11 @@ const itemToHTML = (item, index) => {
             }
             element.title = title
             // Fill item info information
-            info.innerHTML = `<img src=${damageTypes[item.element]}> ${item.light}`;
+            if(item.breakerType != 0){
+                info.innerHTML = `<img src=${breakers[item.breakerType]}><img src=${damageTypes[item.element]}> ${item.light}`;
+            }else{
+                info.innerHTML = `<img src=${damageTypes[item.element]}> ${item.light}`;
+            }
         } else {
             let title = `${item.name}`;
             if (tierTypes[item.rarity]) {
@@ -440,6 +448,7 @@ const onDrop = async (id) => {
             db.characters[funny].inventory[id.split(".")[1]] = (db.characters[funny].inventory[id.split(".")[1]].slice(0, transferData[5])).concat(db.characters[funny].inventory[id.split(".")[1]].slice(transferData[5] + 1))
             // Transfer to character
             if ((await transferItem(transferData[0], transferData[1], transferData[2], transferData[3], vault)) == 200) {
+                createNotification("Transfered Item: " + transferData[4], 1500);
                 db.characters[transferData[3]].inventory[id.split(".")[1]].push(item)
             } else {
                 db.vault[id.split(".")[1]].push(item);
@@ -598,6 +607,13 @@ const sortVault = () => {
 const getVault = async () => {
     createNotification("Refreshing inventory!", 1500);
 
+    // Reset some old variables
+    times = [];
+    db = {
+        characters: {  },
+        vault: {}
+    }
+
     // Get character information
     const response = await (await fetch(baseURL +
         `${membershipType}/Profile/${membershipID}?components=102,200,201,205,206,300,301,302,304,305,310`, globalReq)).json();
@@ -711,7 +727,7 @@ const getVault = async () => {
  * */
 const transferItem = async (itemHash, stackSize, instance, character, toVault) => {
     return new Promise(async (res, rej) => {
-        let data = globalReq;
+        let data = JSON.parse(JSON.stringify(globalReq)); // THIS IS TO DEEP CLONE THE OBJECT!
         data.method = "POST";
         data.body = JSON.stringify({
             "itemReferenceHash": itemHash,
@@ -742,7 +758,7 @@ const transferItem = async (itemHash, stackSize, instance, character, toVault) =
  * character character to equip to
  */
 const equipItem = async (instance, character) => {
-    let data = globalReq;
+    let data = JSON.parse(JSON.stringify(globalReq)); // THIS IS TO DEEP CLONE THE OBJECT!
     data.method = "POST"
     data.body = json.stringify({
         "itemId": instance,
