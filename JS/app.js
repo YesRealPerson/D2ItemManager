@@ -416,6 +416,12 @@ const itemToHTML = (item, index) => {
 
 // Given two items compares them for sorting
 const itemCompare = (a, b) => {
+    // If the items are armor or not
+    let armor = a.type[1] != 1 && b.type[1] != 1;
+    // 21, 22, 23
+    if(armor){
+        return b.type[1] - a.type[1];
+    }
     let lightDiff = b.light - a.light;
     let rareDiff = b.rarity - a.rarity;
     // Depending on user setting sorts by rarity first or by power level first
