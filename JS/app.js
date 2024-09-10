@@ -569,12 +569,11 @@ const sortVault = () => {
                 console.log(`bucket id ${bucketName} does not exist in character ${id} equipped!\nError: ${err}`)
             }
 
-
+            // Sort character inventory bucket
+            character.inventory[bucketName].sort(itemCompare);
 
             // Fill character inventory bucket
             try {
-                // Sort character inventory bucket
-                character.inventory[bucketName].sort(itemCompare);
                 for (let k = 0; k < character.inventory[bucketName].length; k++) {
                     let itemElement = itemToHTML(character.inventory[bucketName][k], k);
                     itemElement.addEventListener("dblclick", async () => {
@@ -650,6 +649,12 @@ const getVault = async () => {
             emblemBig: data[key].emblemBackgroundPath
         }
 
+        let bucketKeys = Object.keys(buckets);
+        bucketKeys.forEach(key => {
+            character.equipped[buckets[key]] = [];
+            character.inventory[buckets[key]] = [];
+        })
+
         // Equipped items
         let equipped = response.Response.characterEquipment.data[key].items;
         for (let j = 0; j < equipped.length; j++) {
@@ -699,6 +704,10 @@ const getVault = async () => {
 
     // Create db vault informationn
     let vault = response.Response.profileInventory.data.items;
+    let bucketKeys = Object.keys(buckets);
+    bucketKeys.forEach(key => {
+        db.vault[buckets[key]] = [];
+    });
     for (let i = 0; i < vault.length; i++) {
         if (vault[i].itemInstanceId != undefined) {
             try {
