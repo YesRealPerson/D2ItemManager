@@ -126,6 +126,7 @@ svg {
 	font-size: 13px;
 	width: 100%;
 	text-align: right;
+	white-space: nowrap;
 }
 
 .item>div>img {

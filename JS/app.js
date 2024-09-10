@@ -362,9 +362,9 @@ const itemToHTML = (item, index) => {
             }
             element.title = title
             // Fill item info information
-            if(item.breakerType != 0){
+            if (item.breakerType != 0) {
                 info.innerHTML = `<img src=${breakers[item.breakerType]}><img src=${damageTypes[item.element]}> ${item.light}`;
-            }else{
+            } else {
                 info.innerHTML = `<img src=${damageTypes[item.element]}> ${item.light}`;
             }
         } else {
@@ -433,66 +433,70 @@ const itemCompare = (a, b) => {
 }
 
 const onDrop = async (id) => {
-    console.log("Transfer to: ", id);
-    createNotification("Transfering Item: " + transferData[4], 1500)
-    let vault = false; //Are we transfering to (true) or from (false) the vault
-    if (transferData[3] && id.split(".")[0] == "inventory") {
-        // Transfer to vault then transfer to character
-        vault = true;
-        // Transfer to vault
-        if ((await transferItem(transferData[0], transferData[1], transferData[2], transferData[3], vault)) == 200) {
-            let funny = transferData[3]
-            transferData[3] = id.split(".")[2];
-            vault = false;
-            let item = db.characters[funny].inventory[id.split(".")[1]][transferData[5]]
-            db.characters[funny].inventory[id.split(".")[1]] = (db.characters[funny].inventory[id.split(".")[1]].slice(0, transferData[5])).concat(db.characters[funny].inventory[id.split(".")[1]].slice(transferData[5] + 1))
-            // Transfer to character
-            if ((await transferItem(transferData[0], transferData[1], transferData[2], transferData[3], vault)) == 200) {
-                createNotification("Transfered Item: " + transferData[4], 1500);
-                db.characters[transferData[3]].inventory[id.split(".")[1]].push(item)
+    // Deep copy transfer data to prevent data from getting mixed around when handling multiple requests
+    transferDataCopy = JSON.parse(JSON.stringify(transferData));
+    if (id.split(".")[0] == "vault" || id.split(".") == "inventory") {
+        console.log("Transfer to: ", id);
+        createNotification("Transfering Item: " + transferDataCopy[4], 1500)
+        let vault = false; //Are we transfering to (true) or from (false) the vault
+        if (transferDataCopy[3] && id.split(".")[0] == "inventory") {
+            // Transfer to vault then transfer to character
+            vault = true;
+            // Transfer to vault
+            if ((await transferItem(transferDataCopy[0], transferDataCopy[1], transferDataCopy[2], transferDataCopy[3], vault)) == 200) {
+                let funny = transferDataCopy[3]
+                transferDataCopy[3] = id.split(".")[2];
+                vault = false;
+                let item = db.characters[funny].inventory[id.split(".")[1]][transferDataCopy[5]]
+                db.characters[funny].inventory[id.split(".")[1]] = (db.characters[funny].inventory[id.split(".")[1]].slice(0, transferDataCopy[5])).concat(db.characters[funny].inventory[id.split(".")[1]].slice(transferDataCopy[5] + 1))
+                // Transfer to character
+                if ((await transferItem(transferDataCopy[0], transferDataCopy[1], transferDataCopy[2], transferDataCopy[3], vault)) == 200) {
+                    createNotification("Transfered Item: " + transferDataCopy[4], 1500);
+                    db.characters[transferDataCopy[3]].inventory[id.split(".")[1]].push(item)
+                } else {
+                    db.vault[id.split(".")[1]].push(item);
+                    createNotification("Item Transfer Failed!", 1500)
+                }
+                sortVault();
             } else {
-                db.vault[id.split(".")[1]].push(item);
                 createNotification("Item Transfer Failed!", 1500)
             }
-            sortVault();
-        }else{
-            createNotification("Item Transfer Failed!", 1500)
-        }
-    }
-    else {
-        if (!transferData[3]) { // Character id is not present from dragstart event
-            transferData[3] = id.split(".")[2];
         }
         else {
-            vault = true;
-        }
-        if ((await transferItem(transferData[0], transferData[1], transferData[2], transferData[3], vault)) == 200) {
-            createNotification("Transfered Item: " + transferData[4], 1500);
-            if (vault) {
-                // Grab and delete item from character
-                // database > characters > character id > inventory > bucket name > index
-                let item = db.characters[transferData[3]].inventory[id.split(".")[1]][transferData[5]]
-                console.log(`db.characters.${transferData[3]}.inventory.${id.split(".")[1]}.${transferData[5]}`);
-                db.characters[transferData[3]].inventory[id.split(".")[1]] = (db.characters[transferData[3]].inventory[id.split(".")[1]].slice(0, transferData[5])).concat(db.characters[transferData[3]].inventory[id.split(".")[1]].slice(transferData[5] + 1))
-                // Push to correct vault bucket
-                db.vault[id.split(".")[1]].push(item);
-            } else {
-                // Grab and delete item from vault
-                // Database > Vault > Bucket Name > Index
-                let item = db.vault[id.split(".")[1]][transferData[5]]
-                console.log(`db.vault.${id.split(".")[1]}.${transferData[5]}`);
-                db.vault[id.split(".")[1]] = (db.vault[id.split(".")[1]].slice(0, transferData[5])).concat(db.vault[id.split(".")[1]].slice(transferData[5] + 1))
-                db.characters[transferData[3]].inventory[id.split(".")[1]].push(item)
+            if (!transferDataCopy[3]) { // Character id is not present from dragstart event
+                transferDataCopy[3] = id.split(".")[2];
             }
-            sortVault();
-        } else {
-            createNotification("Item Transfer Failed!", 1500)
+            else {
+                vault = true;
+            }
+            if ((await transferItem(transferDataCopy[0], transferDataCopy[1], transferDataCopy[2], transferDataCopy[3], vault)) == 200) {
+                createNotification("Transfered Item: " + transferDataCopy[4], 1500);
+                if (vault) {
+                    // Grab and delete item from character
+                    // database > characters > character id > inventory > bucket name > index
+                    let item = db.characters[transferDataCopy[3]].inventory[id.split(".")[1]][transferDataCopy[5]]
+                    console.log(`db.characters.${transferDataCopy[3]}.inventory.${id.split(".")[1]}.${transferDataCopy[5]}`);
+                    db.characters[transferDataCopy[3]].inventory[id.split(".")[1]] = (db.characters[transferDataCopy[3]].inventory[id.split(".")[1]].slice(0, transferDataCopy[5])).concat(db.characters[transferDataCopy[3]].inventory[id.split(".")[1]].slice(transferDataCopy[5] + 1))
+                    // Push to correct vault bucket
+                    db.vault[id.split(".")[1]].push(item);
+                } else {
+                    // Grab and delete item from vault
+                    // Database > Vault > Bucket Name > Index
+                    let item = db.vault[id.split(".")[1]][transferDataCopy[5]]
+                    console.log(`db.vault.${id.split(".")[1]}.${transferDataCopy[5]}`);
+                    db.vault[id.split(".")[1]] = (db.vault[id.split(".")[1]].slice(0, transferDataCopy[5])).concat(db.vault[id.split(".")[1]].slice(transferDataCopy[5] + 1))
+                    db.characters[transferDataCopy[3]].inventory[id.split(".")[1]].push(item)
+                }
+                sortVault();
+            } else {
+                createNotification("Item Transfer Failed!", 1500)
+            }
         }
-    }
 
-    let funny = document.getElementsByClassName("ui-tooltip");
-    for (let i = 0; i < funny.length; i++) {
-        funny[i].remove();
+        let funny = document.getElementsByClassName("ui-tooltip");
+        for (let i = 0; i < funny.length; i++) {
+            funny[i].remove();
+        }
     }
 }
 
@@ -610,7 +614,7 @@ const getVault = async () => {
     // Reset some old variables
     times = [];
     db = {
-        characters: {  },
+        characters: {},
         vault: {}
     }
 
