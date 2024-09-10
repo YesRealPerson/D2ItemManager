@@ -401,7 +401,7 @@ const itemToHTML = (item, index) => {
         transferData[5] = index;
     })
     element.addEventListener("dragend", (event) => {
-        // document.getElementById("tempStyle").remove();
+        document.getElementById("tempStyle").remove();
     })
     return element;
 }
@@ -428,9 +428,7 @@ const onDrop = async (id) => {
     console.log("Transfer to: ", id);
     createNotification("Transfering Item: " + transferData[4], 1500)
     let vault = false; //Are we transfering to (true) or from (false) the vault
-    if (!transferData[3]) { // Character id is not present from dragstart event
-        transferData[3] = id.split(".")[2];
-    } else if(transferData[3] && id.split(".")[0] == "inventory"){
+    if (transferData[3] && id.split(".")[0] == "inventory") {
         // Transfer to vault then transfer to character
         vault = true;
         // Transfer to vault
@@ -439,43 +437,52 @@ const onDrop = async (id) => {
             transferData[3] = id.split(".")[2];
             vault = false;
             let item = db.characters[funny].inventory[id.split(".")[1]][transferData[5]]
-            db.characters[funny].inventory[id.split(".")[1]] = (db.characters[funny].inventory[id.split(".")[1]].slice(0, transferData[5])).concat(db.characters[funny].inventory[id.split(".")[1]].slice(transferData[5]+1))
+            db.characters[funny].inventory[id.split(".")[1]] = (db.characters[funny].inventory[id.split(".")[1]].slice(0, transferData[5])).concat(db.characters[funny].inventory[id.split(".")[1]].slice(transferData[5] + 1))
             // Transfer to character
             if ((await transferItem(transferData[0], transferData[1], transferData[2], transferData[3], vault)) == 200) {
                 db.characters[transferData[3]].inventory[id.split(".")[1]].push(item)
-            }else{
+            } else {
                 db.vault[id.split(".")[1]].push(item);
+                createNotification("Item Transfer Failed!", 1500)
             }
-        }
-    }
-    else{
-        vault = true;
-    }
-    if ((await transferItem(transferData[0], transferData[1], transferData[2], transferData[3], vault)) == 200) {
-        createNotification("Transfered Item: " + transferData[4], 1500);
-        if(vault){
-            // Grab and delete item from character
-            // database > characters > character id > inventory > bucket name > index
-            let item = db.characters[transferData[3]].inventory[id.split(".")[1]][transferData[5]]
-            console.log(`db.characters.${transferData[3]}.inventory.${id.split(".")[1]}.${transferData[5]}`);
-            db.characters[transferData[3]].inventory[id.split(".")[1]] = (db.characters[transferData[3]].inventory[id.split(".")[1]].slice(0, transferData[5])).concat(db.characters[transferData[3]].inventory[id.split(".")[1]].slice(transferData[5]+1))
-            // Push to correct vault bucket
-            db.vault[id.split(".")[1]].push(item);
+            sortVault();
         }else{
-            // Grab and delete item from vault
-            // Database > Vault > Bucket Name > Index
-            let item = db.vault[id.split(".")[1]][transferData[5]]
-            console.log(`db.vault.${id.split(".")[1]}.${transferData[5]}`);
-            db.vault[id.split(".")[1]] = (db.vault[id.split(".")[1]].slice(0,transferData[5])).concat(db.vault[id.split(".")[1]].slice(transferData[5]+1))
-            db.characters[transferData[3]].inventory[id.split(".")[1]].push(item)
+            createNotification("Item Transfer Failed!", 1500)
         }
-        sortVault();
-    }else{
-        createNotification("Item Transfer Failed!", 1500)
+    }
+    else {
+        if (!transferData[3]) { // Character id is not present from dragstart event
+            transferData[3] = id.split(".")[2];
+        }
+        else {
+            vault = true;
+        }
+        if ((await transferItem(transferData[0], transferData[1], transferData[2], transferData[3], vault)) == 200) {
+            createNotification("Transfered Item: " + transferData[4], 1500);
+            if (vault) {
+                // Grab and delete item from character
+                // database > characters > character id > inventory > bucket name > index
+                let item = db.characters[transferData[3]].inventory[id.split(".")[1]][transferData[5]]
+                console.log(`db.characters.${transferData[3]}.inventory.${id.split(".")[1]}.${transferData[5]}`);
+                db.characters[transferData[3]].inventory[id.split(".")[1]] = (db.characters[transferData[3]].inventory[id.split(".")[1]].slice(0, transferData[5])).concat(db.characters[transferData[3]].inventory[id.split(".")[1]].slice(transferData[5] + 1))
+                // Push to correct vault bucket
+                db.vault[id.split(".")[1]].push(item);
+            } else {
+                // Grab and delete item from vault
+                // Database > Vault > Bucket Name > Index
+                let item = db.vault[id.split(".")[1]][transferData[5]]
+                console.log(`db.vault.${id.split(".")[1]}.${transferData[5]}`);
+                db.vault[id.split(".")[1]] = (db.vault[id.split(".")[1]].slice(0, transferData[5])).concat(db.vault[id.split(".")[1]].slice(transferData[5] + 1))
+                db.characters[transferData[3]].inventory[id.split(".")[1]].push(item)
+            }
+            sortVault();
+        } else {
+            createNotification("Item Transfer Failed!", 1500)
+        }
     }
 
     let funny = document.getElementsByClassName("ui-tooltip");
-    for(let i = 0; i < funny.length; i++){
+    for (let i = 0; i < funny.length; i++) {
         funny[i].remove();
     }
 }
