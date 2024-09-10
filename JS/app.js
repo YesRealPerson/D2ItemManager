@@ -435,9 +435,10 @@ const itemCompare = (a, b) => {
 const onDrop = async (id) => {
     // Deep copy transfer data to prevent data from getting mixed around when handling multiple requests
     transferDataCopy = JSON.parse(JSON.stringify(transferData));
-    if (id.split(".")[0] == "vault" || id.split(".") == "inventory") {
+    let name = transferDataCopy[4];
+    if (id.split(".")[0] == "vault" || id.split(".")[0] == "inventory") {
         console.log("Transfer to: ", id);
-        createNotification("Transfering Item: " + transferDataCopy[4], 1500)
+        createNotification("Transfering Item: " + name, 1500)
         let vault = false; //Are we transfering to (true) or from (false) the vault
         if (transferDataCopy[3] && id.split(".")[0] == "inventory") {
             // Transfer to vault then transfer to character
@@ -451,7 +452,7 @@ const onDrop = async (id) => {
                 db.characters[funny].inventory[id.split(".")[1]] = (db.characters[funny].inventory[id.split(".")[1]].slice(0, transferDataCopy[5])).concat(db.characters[funny].inventory[id.split(".")[1]].slice(transferDataCopy[5] + 1))
                 // Transfer to character
                 if ((await transferItem(transferDataCopy[0], transferDataCopy[1], transferDataCopy[2], transferDataCopy[3], vault)) == 200) {
-                    createNotification("Transfered Item: " + transferDataCopy[4], 1500);
+                    createNotification("Transfered Item: " + name, 1500);
                     db.characters[transferDataCopy[3]].inventory[id.split(".")[1]].push(item)
                 } else {
                     db.vault[id.split(".")[1]].push(item);
@@ -470,7 +471,7 @@ const onDrop = async (id) => {
                 vault = true;
             }
             if ((await transferItem(transferDataCopy[0], transferDataCopy[1], transferDataCopy[2], transferDataCopy[3], vault)) == 200) {
-                createNotification("Transfered Item: " + transferDataCopy[4], 1500);
+                createNotification("Transfered Item: " + name, 1500);
                 if (vault) {
                     // Grab and delete item from character
                     // database > characters > character id > inventory > bucket name > index
@@ -568,14 +569,18 @@ const sortVault = () => {
                 console.log(`bucket id ${bucketName} does not exist in character ${id} equipped!\nError: ${err}`)
             }
 
-            // Sort character inventory bucket
 
-            character.inventory[bucketName].sort(itemCompare);
 
             // Fill character inventory bucket
             try {
+                // Sort character inventory bucket
+                character.inventory[bucketName].sort(itemCompare);
                 for (let k = 0; k < character.inventory[bucketName].length; k++) {
-                    characterElement.appendChild(itemToHTML(character.inventory[bucketName][k], k));
+                    let itemElement = itemToHTML(character.inventory[bucketName][k], k);
+                    itemElement.addEventListener("dblclick", async () => {
+                        await equipItem()
+                    });
+                    characterElement.appendChild(itemElement);
                 }
                 bucketElements[j].appendChild(characterElement)
             } catch (err) {
@@ -762,20 +767,27 @@ const transferItem = async (itemHash, stackSize, instance, character, toVault) =
  * character character to equip to
  */
 const equipItem = async (instance, character) => {
-    let data = JSON.parse(JSON.stringify(globalReq)); // THIS IS TO DEEP CLONE THE OBJECT!
-    data.method = "POST"
-    data.body = json.stringify({
-        "itemId": instance,
-        "characterId": character,
-        "membershipType": membershipType
-    });
+    return new Promise(async (res, rej) => {
+        let data = JSON.parse(JSON.stringify(globalReq)); // THIS IS TO DEEP CLONE THE OBJECT!
+        data.method = "POST"
+        data.body = json.stringify({
+            "itemId": instance,
+            "characterId": character,
+            "membershipType": membershipType
+        });
 
-    let response = await fetch(baseURL + "Actions/Items/EquipItem/", data)
-    if (response.status == 401) {
-        console.log("Transfer item failed!\nRefreshing token\nResponse for debug:" + await response.text());
-        await refreshAccess();
-        equipItem(instance, character);
-    }
+        let response = await fetch(baseURL + "Actions/Items/EquipItem/", data)
+        if (response.status == 200) {
+            res(200);
+        }
+        else if (response.status == 401) {
+            console.log("Transfer item failed!\nRefreshing token\nResponse for debug:" + await response.text());
+            await refreshAccess();
+            equipItem(instance, character);
+        } else {
+            rej(500);
+        }
+    })
 }
 // Main function start
 (async function () {
