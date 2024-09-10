@@ -583,7 +583,17 @@ const sortVault = () => {
                 for (let k = 0; k < character.inventory[bucketName].length; k++) {
                     let itemElement = itemToHTML(character.inventory[bucketName][k], k);
                     itemElement.addEventListener("dblclick", async () => {
-                        await equipItem()
+                        createNotification("Equipping: "+character.inventory[bucketName][k].name, 1500);
+                        if((await equipItem(character.inventory[bucketName][k].id, id))==200){
+                            // Swap equipped item with transfered item
+                            let item = db.characters[id].equipped[bucketName][0];
+                            db.characters[id].equipped[bucketName][0] = character.inventory[bucketName][k];
+                            character.inventory[bucketName][k] = item;
+                            createNotification("Equiped: "+character.inventory[bucketName][k].name, 1500);
+                            sortVault();
+                        }else{
+                            createNotification("Failed to equip: "+character.inventory[bucketName][k].name, 1500);
+                        }
                     });
                     characterElement.appendChild(itemElement);
                 }
