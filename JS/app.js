@@ -419,7 +419,7 @@ const itemCompare = (a, b) => {
     // If the items are armor or not
     let armor = a.type[1] != 1 && b.type[1] != 1;
     // 21, 22, 23
-    if(armor){
+    if (armor) {
         return b.type[0] - a.type[0];
     }
     let lightDiff = b.light - a.light;
@@ -583,16 +583,20 @@ const sortVault = () => {
                 for (let k = 0; k < character.inventory[bucketName].length; k++) {
                     let itemElement = itemToHTML(character.inventory[bucketName][k], k);
                     itemElement.addEventListener("dblclick", async () => {
-                        createNotification("Equipping: "+character.inventory[bucketName][k].name, 1500);
-                        if((await equipItem(character.inventory[bucketName][k].id, id))==200){
+                        createNotification("Equipping: " + character.inventory[bucketName][k].name, 1500);
+                        if ((await equipItem(character.inventory[bucketName][k].id, id)) == 200) {
+                            createNotification("Equipped: " + character.inventory[bucketName][k].name, 1500);
                             // Swap equipped item with transfered item
                             let item = db.characters[id].equipped[bucketName][0];
                             db.characters[id].equipped[bucketName][0] = character.inventory[bucketName][k];
                             character.inventory[bucketName][k] = item;
-                            createNotification("Equiped: "+character.inventory[bucketName][k].name, 1500);
                             sortVault();
-                        }else{
-                            createNotification("Failed to equip: "+character.inventory[bucketName][k].name, 1500);
+                        } else {
+                            createNotification("Failed to equip: " + character.inventory[bucketName][k].name, 1500);
+                        }
+                        let funny = document.getElementsByClassName("ui-tooltip");
+                        for (let i = 0; i < funny.length; i++) {
+                            funny[i].remove();
                         }
                     });
                     characterElement.appendChild(itemElement);
