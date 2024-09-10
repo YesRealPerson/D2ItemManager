@@ -420,7 +420,7 @@ const itemCompare = (a, b) => {
     let armor = a.type[1] != 1 && b.type[1] != 1;
     // 21, 22, 23
     if(armor){
-        return b.type[1] - a.type[1];
+        return b.type[0] - a.type[0];
     }
     let lightDiff = b.light - a.light;
     let rareDiff = b.rarity - a.rarity;
@@ -795,7 +795,7 @@ const equipItem = async (instance, character) => {
     return new Promise(async (res, rej) => {
         let data = JSON.parse(JSON.stringify(globalReq)); // THIS IS TO DEEP CLONE THE OBJECT!
         data.method = "POST"
-        data.body = json.stringify({
+        data.body = JSON.stringify({
             "itemId": instance,
             "characterId": character,
             "membershipType": membershipType
