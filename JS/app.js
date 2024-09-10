@@ -401,7 +401,7 @@ const itemToHTML = (item, index) => {
         transferData[5] = index;
     })
     element.addEventListener("dragend", (event) => {
-        document.getElementById("tempStyle").remove();
+        // document.getElementById("tempStyle").remove();
     })
     return element;
 }
@@ -430,7 +430,25 @@ const onDrop = async (id) => {
     let vault = false; //Are we transfering to (true) or from (false) the vault
     if (!transferData[3]) { // Character id is not present from dragstart event
         transferData[3] = id.split(".")[2];
-    } else {
+    } else if(transferData[3] && id.split(".")[0] == "inventory"){
+        // Transfer to vault then transfer to character
+        vault = true;
+        // Transfer to vault
+        if ((await transferItem(transferData[0], transferData[1], transferData[2], transferData[3], vault)) == 200) {
+            let funny = transferData[3]
+            transferData[3] = id.split(".")[2];
+            vault = false;
+            let item = db.characters[funny].inventory[id.split(".")[1]][transferData[5]]
+            db.characters[funny].inventory[id.split(".")[1]] = (db.characters[funny].inventory[id.split(".")[1]].slice(0, transferData[5])).concat(db.characters[funny].inventory[id.split(".")[1]].slice(transferData[5]+1))
+            // Transfer to character
+            if ((await transferItem(transferData[0], transferData[1], transferData[2], transferData[3], vault)) == 200) {
+                db.characters[transferData[3]].inventory[id.split(".")[1]].push(item)
+            }else{
+                db.vault[id.split(".")[1]].push(item);
+            }
+        }
+    }
+    else{
         vault = true;
     }
     if ((await transferItem(transferData[0], transferData[1], transferData[2], transferData[3], vault)) == 200) {
@@ -456,6 +474,10 @@ const onDrop = async (id) => {
         createNotification("Item Transfer Failed!", 1500)
     }
 
+    let funny = document.getElementsByClassName("ui-tooltip");
+    for(let i = 0; i < funny.length; i++){
+        funny[i].remove();
+    }
 }
 
 // Sorts db and fills in page
@@ -501,7 +523,6 @@ const sortVault = () => {
         element.className = "selector classes"
         document.getElementById("characters").appendChild(element);
 
-
         for (let j = 0; j < bucketElements.length; j++) {
             let bucketName = bucketElements[j].id;
             let equippedElement = document.createElement("div");
@@ -526,6 +547,10 @@ const sortVault = () => {
             } catch (err) {
                 console.log(`bucket id ${bucketName} does not exist in character ${id} equipped!\nError: ${err}`)
             }
+
+            // Sort character inventory bucket
+
+            character.inventory[bucketName].sort(itemCompare);
 
             // Fill character inventory bucket
             try {
@@ -634,12 +659,6 @@ const getVault = async () => {
                 }
             }
         }
-        // Sort iventories
-        let inventoryKeys = Object.keys(character.inventory);
-        for (let j = 0; j < inventoryKeys.length; j++) {
-            character.inventory[inventoryKeys[j]].sort(itemCompare);
-        }
-
         // Push character object to DB
         db.characters[key] = character;
     }
