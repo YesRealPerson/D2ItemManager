@@ -179,7 +179,7 @@ const refreshManifests = async () => {
 const refreshAccess = async () => {
     return new Promise(async (res, rej) => {
         try {
-            let response = await fetch("https://d2refresh.spark952.workers.dev/?code=" + refresh);
+            let response = await fetch("https://d2refresh.spark952.workers.dev/?code=" + encodeURIComponent(refresh));
             response = await response.json();
             access = response.access_token;
             refresh = response.refresh_token;
@@ -647,8 +647,12 @@ const getVault = async () => {
         `${membershipType}/Profile/${membershipID}?components=102,200,201,205,206,300,301,302,304,305,310`, globalReq)).json();
     if (response.status == 401) {
         console.log("Vault refresh failed!\nRefreshing token\nResponse for debug:" + await response.text());
-        await refreshAccess();
-        getVault();
+        if (await refreshAccess() == 200) {
+            getVault();
+        } else {
+            createNotification("Access Token Expired! Please re-login.")
+        }
+
     }
     // Browse to character information variable
     let data = response.Response.characters.data;
@@ -779,8 +783,11 @@ const transferItem = async (itemHash, stackSize, instance, character, toVault) =
         let response = await fetch(baseURL + "Actions/Items/TransferItem/", data)
         if (response.status == 401) {
             console.log("Transfer item failed!\nRefreshing token\nResponse for debug:" + await response.text());
-            await refreshAccess();
-            transferItem(itemHash, stackSize, toVault, instance, character);
+            if (await refreshAccess() == 200) {
+                transferItem(itemHash, stackSize, toVault, instance, character);
+            } else {
+                createNotification("Access Token Expired! Please re-login.")
+            }
         }
         else if (response.status == 200) {
             res(200)
@@ -811,8 +818,11 @@ const equipItem = async (instance, character) => {
         }
         else if (response.status == 401) {
             console.log("Transfer item failed!\nRefreshing token\nResponse for debug:" + await response.text());
-            await refreshAccess();
-            equipItem(instance, character);
+            if (await refreshAccess() == 200) {
+                equipItem(instance, character);
+            } else {
+                createNotification("Access Token Expired! Please re-login.")
+            }
         } else {
             rej(500);
         }
@@ -838,8 +848,12 @@ const equipItem = async (instance, character) => {
     try {
         linkedProfiles = await (await fetch(baseURL + "254/Profile/" + accID + "/LinkedProfiles", globalReq)).json();
     } catch {
-        await refreshAccess()
-        linkedProfiles = await (await fetch(baseURL + "254/Profile/" + accID + "/LinkedProfiles", globalReq)).json();
+
+        if (await refreshAccess() == 200) {
+            linkedProfiles = await (await fetch(baseURL + "254/Profile/" + accID + "/LinkedProfiles", globalReq)).json();
+        } else {
+            createNotification("Access Token Expired! Please re-login.")
+        }
     }
     linkedProfiles = linkedProfiles.Response.profiles[0];
     membershipID = linkedProfiles.membershipId;

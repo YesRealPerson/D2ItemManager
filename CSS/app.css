@@ -409,6 +409,7 @@ svg {
 
 #statName {
 	text-align: right;
+	white-space: nowrap;
 }
 
 #status {
