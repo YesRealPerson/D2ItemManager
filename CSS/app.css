@@ -337,7 +337,7 @@ svg {
 	text-align: left;
 	top: 250px;
 	width: 20vw;
-	min-width: 350px;
+	min-width: 450px;
 	z-index: 100;
 }
 
@@ -366,7 +366,7 @@ svg {
 
 #screenshot {
 	width: 20vw;
-	min-width: 350px;
+	min-width: 450px;
 }
 
 #searchBox {

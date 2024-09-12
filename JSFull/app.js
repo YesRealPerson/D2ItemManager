@@ -450,23 +450,25 @@ const onDrop = async (id) => {
             // Transfer to vault then transfer to character
             vault = true;
             // Transfer to vault
-            if ((await transferItem(transferDataCopy[0], transferDataCopy[1], transferDataCopy[2], transferDataCopy[3], vault)) == 200) {
+            let response = await transferItem(transferDataCopy[0], transferDataCopy[1], transferDataCopy[2], transferDataCopy[3], vault);
+            if (response == 200) {
                 let funny = transferDataCopy[3]
                 transferDataCopy[3] = id.split(".")[2];
                 vault = false;
                 let item = db.characters[funny].inventory[id.split(".")[1]][transferDataCopy[5]]
                 db.characters[funny].inventory[id.split(".")[1]] = (db.characters[funny].inventory[id.split(".")[1]].slice(0, transferDataCopy[5])).concat(db.characters[funny].inventory[id.split(".")[1]].slice(transferDataCopy[5] + 1))
                 // Transfer to character
-                if ((await transferItem(transferDataCopy[0], transferDataCopy[1], transferDataCopy[2], transferDataCopy[3], vault)) == 200) {
+                response = await transferItem(transferDataCopy[0], transferDataCopy[1], transferDataCopy[2], transferDataCopy[3], vault);
+                if (response == 200) {
                     createNotification("Transfered Item: " + name, 1500);
                     db.characters[transferDataCopy[3]].inventory[id.split(".")[1]].push(item)
                 } else {
                     db.vault[id.split(".")[1]].push(item);
-                    createNotification("Item Transfer Failed!", 1500)
+                    createNotification("Item Transfer Failed!\n"+response.message, 1500)
                 }
                 sortVault();
             } else {
-                createNotification("Item Transfer Failed!", 1500)
+                createNotification("Item Transfer Failed!\n"+response.message, 1500)
             }
         }
         else {
@@ -476,7 +478,8 @@ const onDrop = async (id) => {
             else {
                 vault = true;
             }
-            if ((await transferItem(transferDataCopy[0], transferDataCopy[1], transferDataCopy[2], transferDataCopy[3], vault)) == 200) {
+            let response = await transferItem(transferDataCopy[0], transferDataCopy[1], transferDataCopy[2], transferDataCopy[3], vault);
+            if (response == 200) {
                 createNotification("Transfered Item: " + name, 1500);
                 if (vault) {
                     // Grab and delete item from character
@@ -496,7 +499,7 @@ const onDrop = async (id) => {
                 }
                 sortVault();
             } else {
-                createNotification("Item Transfer Failed!", 1500)
+                createNotification("Item Transfer Failed!\n"+response.message, 1500)
             }
         }
 
@@ -584,7 +587,8 @@ const sortVault = () => {
                     let itemElement = itemToHTML(character.inventory[bucketName][k], k);
                     itemElement.addEventListener("dblclick", async () => {
                         createNotification("Equipping: " + character.inventory[bucketName][k].name, 1500);
-                        if ((await equipItem(character.inventory[bucketName][k].id, id)) == 200) {
+                        let request = await equipItem(character.inventory[bucketName][k].id, id);
+                        if (request == 200) {
                             createNotification("Equipped: " + character.inventory[bucketName][k].name, 1500);
                             // Swap equipped item with transfered item
                             let item = db.characters[id].equipped[bucketName][0];
@@ -592,7 +596,7 @@ const sortVault = () => {
                             character.inventory[bucketName][k] = item;
                             sortVault();
                         } else {
-                            createNotification("Failed to equip: " + character.inventory[bucketName][k].name, 1500);
+                            createNotification("Failed to equip: " + character.inventory[bucketName][k].name + "\n" + response.message, 1500);
                         }
                         let funny = document.getElementsByClassName("ui-tooltip");
                         for (let i = 0; i < funny.length; i++) {
@@ -793,7 +797,7 @@ const transferItem = async (itemHash, stackSize, instance, character, toVault) =
             res(200)
         } else {
             console.error("Something funky happened! (transferItem)\n", JSON.stringify(response), response)
-            rej(500)
+            res(await response.json())
         }
     });
 }
@@ -824,7 +828,7 @@ const equipItem = async (instance, character) => {
                 createNotification("Access Token Expired! Please re-login.")
             }
         } else {
-            rej(500);
+            res(await response.json());
         }
     })
 }
