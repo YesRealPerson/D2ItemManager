@@ -464,11 +464,11 @@ const onDrop = async (id) => {
                     db.characters[transferDataCopy[3]].inventory[id.split(".")[1]].push(item)
                 } else {
                     db.vault[id.split(".")[1]].push(item);
-                    createNotification("Item Transfer Failed!\n"+response.message, 1500)
+                    createNotification("Item Transfer Failed!\n"+response.Message, 1500)
                 }
                 sortVault();
             } else {
-                createNotification("Item Transfer Failed!\n"+response.message, 1500)
+                createNotification("Item Transfer Failed!\n"+response.Message, 1500)
             }
         }
         else {
@@ -499,7 +499,7 @@ const onDrop = async (id) => {
                 }
                 sortVault();
             } else {
-                createNotification("Item Transfer Failed!\n"+response.message, 1500)
+                createNotification("Item Transfer Failed!\n"+response.Message, 1500)
             }
         }
 
@@ -596,7 +596,7 @@ const sortVault = () => {
                             character.inventory[bucketName][k] = item;
                             sortVault();
                         } else {
-                            createNotification("Failed to equip: " + character.inventory[bucketName][k].name + "\n" + request.message, 1500);
+                            createNotification("Failed to equip: " + character.inventory[bucketName][k].name + "\n" + request.Message, 1500);
                         }
                         let funny = document.getElementsByClassName("ui-tooltip");
                         for (let i = 0; i < funny.length; i++) {
