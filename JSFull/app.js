@@ -596,7 +596,7 @@ const sortVault = () => {
                             character.inventory[bucketName][k] = item;
                             sortVault();
                         } else {
-                            createNotification("Failed to equip: " + character.inventory[bucketName][k].name + "\n" + response.message, 1500);
+                            createNotification("Failed to equip: " + character.inventory[bucketName][k].name + "\n" + request.message, 1500);
                         }
                         let funny = document.getElementsByClassName("ui-tooltip");
                         for (let i = 0; i < funny.length; i++) {
@@ -797,7 +797,9 @@ const transferItem = async (itemHash, stackSize, instance, character, toVault) =
             res(200)
         } else {
             console.error("Something funky happened! (transferItem)\n", JSON.stringify(response), response)
-            res(await response.json())
+            let funny = await response.json();
+            console.log(funny)
+            res(funny)
         }
     });
 }
@@ -828,7 +830,10 @@ const equipItem = async (instance, character) => {
                 createNotification("Access Token Expired! Please re-login.")
             }
         } else {
-            res(await response.json());
+            let funny = await response.json();
+            console.log(funny)
+            console.log(Object.keys(funny))
+            res(funny)
         }
     })
 }
