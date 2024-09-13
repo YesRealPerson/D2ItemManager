@@ -36,11 +36,11 @@ svg {
 
 .bar {
 	background-color: grey;
-	height: 11px;
-	margin-bottom: 8px;
-	margin-left: 10px;
-	margin-top: 4px;
+	height: 8px;
+	margin-bottom: 1px;
+	margin-top: 1px;
 	width: 90%;
+	display: inline-block;
 }
 
 .charArea {
@@ -337,8 +337,9 @@ svg {
 	text-align: left;
 	top: 250px;
 	width: 20vw;
-	min-width: 450px;
+	min-width: 350px;
 	z-index: 100;
+	font-size: 12px;
 }
 
 #name {
@@ -366,7 +367,7 @@ svg {
 
 #screenshot {
 	width: 20vw;
-	min-width: 450px;
+	min-width: 350px;
 }
 
 #searchBox {
@@ -399,6 +400,7 @@ svg {
 	padding-left: 15px;
 	padding-top: 10px;
 	text-align: left;
+	font-size: 15px;
 }
 
 #statValue {

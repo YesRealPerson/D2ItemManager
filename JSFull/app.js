@@ -464,11 +464,11 @@ const onDrop = async (id) => {
                     db.characters[transferDataCopy[3]].inventory[id.split(".")[1]].push(item)
                 } else {
                     db.vault[id.split(".")[1]].push(item);
-                    createNotification("Item Transfer Failed!\n"+response.Message, 1500)
+                    createNotification("Item Transfer Failed!\n" + response.Message, 1500)
                 }
                 sortVault();
             } else {
-                createNotification("Item Transfer Failed!\n"+response.Message, 1500)
+                createNotification("Item Transfer Failed!\n" + response.Message, 1500)
             }
         }
         else {
@@ -499,7 +499,7 @@ const onDrop = async (id) => {
                 }
                 sortVault();
             } else {
-                createNotification("Item Transfer Failed!\n"+response.Message, 1500)
+                createNotification("Item Transfer Failed!\n" + response.Message, 1500)
             }
         }
 
@@ -643,7 +643,8 @@ const getVault = async () => {
     times = [];
     db = {
         characters: {},
-        vault: {}
+        vault: {},
+        iterableList: []
     }
 
     // Get character information
@@ -690,6 +691,7 @@ const getVault = async () => {
                 try {
                     let item = getItem(equipped[j].itemInstanceId, equipped[j].itemHash, response);
                     item.bucket = buckets[equipped[j].bucketHash];
+                    db.iterableList.push(Item);
                     try {
                         character.equipped[item.bucket].push(item);
                     } catch {
@@ -713,6 +715,7 @@ const getVault = async () => {
                 try {
                     let item = getItem(inventory[j].itemInstanceId, inventory[j].itemHash, response);
                     item.bucket = buckets[inventory[j].bucketHash];
+                    db.iterableList.push(Item);
                     try {
                         character.inventory[item.bucket].push(item);
                     } catch {
@@ -741,6 +744,7 @@ const getVault = async () => {
             try {
                 let item = getItem(vault[i].itemInstanceId, vault[i].itemHash, response);
                 item.bucket = buckets[item.bucket];
+                db.iterableList.push(Item);
                 try {
                     db.vault[item.bucket].push(item);
                 } catch {
@@ -837,6 +841,14 @@ const equipItem = async (instance, character) => {
         }
     })
 }
+
+// Loop refresh vault
+const refreshTimer = async () => {
+    await new Promise(r => setTimeout(r, 45000));
+    getVault();
+    refreshTimer();
+}
+
 // Main function start
 (async function () {
     createNotification("Downloading latest information from Bungie!", 1000);
@@ -856,19 +868,23 @@ const equipItem = async (instance, character) => {
     let linkedProfiles = {}
     try {
         linkedProfiles = await (await fetch(baseURL + "254/Profile/" + accID + "/LinkedProfiles", globalReq)).json();
+        linkedProfiles = linkedProfiles.Response.profiles[0];
+        membershipID = linkedProfiles.membershipId;
+        membershipType = linkedProfiles.membershipType;
+        displayName = linkedProfiles.displayName;
     } catch {
-
         if (await refreshAccess() == 200) {
             linkedProfiles = await (await fetch(baseURL + "254/Profile/" + accID + "/LinkedProfiles", globalReq)).json();
+            linkedProfiles = linkedProfiles.Response.profiles[0];
+            membershipID = linkedProfiles.membershipId;
+            membershipType = linkedProfiles.membershipType;
+            displayName = linkedProfiles.displayName;
         } else {
             createNotification("Access Token Expired! Please re-login.")
         }
     }
-    linkedProfiles = linkedProfiles.Response.profiles[0];
-    membershipID = linkedProfiles.membershipId;
-    membershipType = linkedProfiles.membershipType;
-    displayName = linkedProfiles.displayName;
 
     // Fill vault and character information
     await getVault();
+    refreshTimer();
 })();

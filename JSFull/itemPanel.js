@@ -192,7 +192,7 @@ const showItemInfo = async (item) => {
         down++;
     }
 
-    barElement.style.marginTop = down * 19 + "px";
+    barElement.style.marginTop = down * 14 + "px";
     let armorStatNames = ["Mobility", "Resilience", "Recovery", "Discipline", "Intellect", "Strength"];
     let armorTest = stats[0].name;
 
@@ -255,7 +255,7 @@ const showItemInfo = async (item) => {
         }
         statsElement.innerHTML += name + ":<br>";
         if (icon) {
-            valueElement.innerHTML += "<img src = https://bungie.net" + icon + " style=\"height: 15px; width: auto; vertical-align: middle;\"> " + value + "<br>";
+            valueElement.innerHTML += "<img src = https://bungie.net" + icon + " style=\"height: 12px; width: 12px; vertical-align: middle;\"> " + value + "<br>";
             armor = true;
         } else {
             valueElement.innerHTML += value + "<br>";
