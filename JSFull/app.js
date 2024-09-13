@@ -691,7 +691,7 @@ const getVault = async () => {
                 try {
                     let item = getItem(equipped[j].itemInstanceId, equipped[j].itemHash, response);
                     item.bucket = buckets[equipped[j].bucketHash];
-                    db.iterableList.push(Item);
+                    db.iterableList.push(item);
                     try {
                         character.equipped[item.bucket].push(item);
                     } catch {
@@ -715,7 +715,7 @@ const getVault = async () => {
                 try {
                     let item = getItem(inventory[j].itemInstanceId, inventory[j].itemHash, response);
                     item.bucket = buckets[inventory[j].bucketHash];
-                    db.iterableList.push(Item);
+                    db.iterableList.push(item);
                     try {
                         character.inventory[item.bucket].push(item);
                     } catch {
@@ -744,7 +744,7 @@ const getVault = async () => {
             try {
                 let item = getItem(vault[i].itemInstanceId, vault[i].itemHash, response);
                 item.bucket = buckets[item.bucket];
-                db.iterableList.push(Item);
+                db.iterableList.push(item);
                 try {
                     db.vault[item.bucket].push(item);
                 } catch {
@@ -886,5 +886,4 @@ const refreshTimer = async () => {
 
     // Fill vault and character information
     await getVault();
-    refreshTimer();
 })();
