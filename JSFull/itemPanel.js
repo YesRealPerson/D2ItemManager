@@ -126,18 +126,6 @@ const showItemInfo = async (item) => {
         document.getElementById("panelName").innerHTML += "<br>" + breakerNames[item.breakerType] + "  <img style=\"width:12px; height: 12px; top:2px; position:relative;\" src = \"" + breakers[item.breakerType] + "\">";
     }
     document.getElementById("flavor").innerText = style;
-    // if(item.tags != undefined && item.tags.length != 0){
-    //     let flavor = document.getElementById("panelName");
-    //     let tags = document.createElement("div");
-    //     tags.style.fontStyle = "normal";
-    //     tags.innerText = "Tags: "
-    //     for(let i = 0; i < item.tags.length; i++){
-    //         tags.innerHTML += "<b>"+item.tags[i]+"</b>  ";
-    //     }
-    //     flavor.appendChild(tags);
-    // }
-    // document.getElementById("AddTagButton").setAttribute("onclick",`addTag("${bungieid}", "${instance}")`);
-    // document.getElementById("RemoveTagButton").setAttribute("onclick",`delTag("${bungieid}", "${instance}")`);
 
     let perkElement = document.getElementById("perks");
     perkElement.innerHTML = "";

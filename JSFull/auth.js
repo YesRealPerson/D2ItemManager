@@ -15,7 +15,7 @@ const main = async () => {
             localStorage.setItem("refresh", response.refresh_token);
             localStorage.setItem("accountID", response.membership_id);
             //Redirect to app page assuming no errors have occured
-            window.location.href = "./app.html"
+            window.location.href = "./app"
         }
     } catch (err) {
         document.body.innerText = "Authentication failed!\nError:\n" + err;

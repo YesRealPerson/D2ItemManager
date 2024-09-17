@@ -28,68 +28,127 @@ Item schema
 */
 
 // User called a bad function
-const unknownEval = (item, query) => {return true;}
+const unknownEval = (item, query) => { return true; }
 
 // Search by name
 const nameEval = (item, query) => {
-    return item.name.indexOf(query) != -1;
+    return item.name.toLowercase().indexOf(query) != -1;
 }
 
 // Search by type
-const typeEval = (item, query) => {
-
+const typeEval = (item, query) => { // MAP COMMON SHORTENINGS LATER i.e. SMG -> submachine gun
+    let armor = item.type[1] != 1; // If the item is an armor piece
+    if (armor) {
+        return manifests[4][item.type[0]].shortTitle.toLowercase().indexOf(query) != -1;
+    } else {
+        return manifests[4][item.type[2]].shortTitle.toLowercase().indexOf(query) != -1;
+    }
 }
 
 // Search by ammo type
 const ammoEval = (item, query) => {
-    
+    let ammoTypes = ["none", "primary", "special", "heavy", "none"];
+    return ammoTypes[item.ammo].indexOf(query) != -1;
 }
 
 // Search by damage type
 const damageTypeEval = (item, query) => {
-    
+    let damageTypes = { 1: "kinetic", 2: "arc", 3: "solar", 4: "void", 5: "", 6: "stasis", 7: "strand" };
+    return damageTypes[item.element].indexOf(query) != -1;
 }
 
 // Search by light level
 const lightEval = (item, query) => {
-    
+    try {
+
+        switch (query[0]) {
+            case ">":
+                return item.light > +query.substring(1);
+            case "<":
+                return item.light < +query.substring(1);
+            case "=":
+                return item.light == +query.substring(1);
+            default:
+                return false;
+        }
+    } catch {
+        return false;
+    }
 }
 
 // Search by rarity
 const rarityEval = (item, query) => {
-    
-}
-
-// Search by item family
-const familyEval = (item, query) => {
-    
+    let tierTypes = {
+        3: "common",
+        4: "rare",
+        5: "legendary",
+        6: "exotic"
+    };
+    return tierTypes[item.rarity].indexOf(query != -1);
 }
 
 // Search by breaker type
 const breakerEval = (item, query) => {
-    
+    let breakerNames = ["", "anti-barrier", "overload rounds", "unstoppable rounds"];
+    return breakerNames[item.breakerType].indexOf(query) != -1;
 }
 
 
 
 const nameToFunc = (expr) => {
-    if(expr == "name"){
-        return nameEval;
-    }else{
-        return unknownEval;
+    switch (expr) {
+        case "name":
+            return nameEval;
+        case "type":
+            return typeEval
+        case "ammo":
+            return ammoEval;
+        case "damage":
+            return damageTypeEval;
+        case "light":
+            return lightEval;
+        case "rarity":
+            return rarityEval;
+        case "champion":
+            return breakerEval;
+        default:
+            return unknownEval;
     }
 }
 
 const search = (query) => {
-    query = query.split(",");
-    for(let i = 0; i < query.length; i++){
-        query[i] = query[i].trim().toLowercase();
-    }
-    let matches = db.iterableList;
-    query.array.forEach(expr => {
-        let func = nameToFunc(expr.split(":")[0]);
-        matches.forEach(item => {
+    // Make deep copy of full item list
+    let matches = JSON.parse(JSON.stringify(db.iterableList));
+    try {
+        // Split full search into individual queries
+        query = query.split(",");
+        // Trim and put each query into lowercase for comparison
+        for (let i = 0; i < query.length; i++) {
+            query[i] = query[i].trim().toLowercase();
+        }
+        // Loop through each query
+        query.forEach(expr => {
+            // Get a function for the query type
+            let func = nameToFunc(expr.split(":")[0]);
+            // Evaluate every item for that search
+            for (let i = matches.length - 1; i >= 0; i--) {
+                // If the item matches the query (it returned true)
+                if (func(matches[i], expr.split(":")[1])) {
+                    // Cut element from array
+                    matches = matches.slice(0, i).concat(matches.slice(i + 1))
+                }
+            }
+        });
 
+        // Loop through all remaining elements and grey them out
+        matches.forEach(item => {
+            document.getElementById(item.itemInstanceId).setAttribute("style", "--opacity: 0.5")
         })
-    });
+    } 
+    // In case the user passes an invalid search that causes an error
+    catch {
+        matches.forEach(item => {
+            document.getElementById(item.itemInstanceId).setAttribute("style", "")
+        })
+    }
 }

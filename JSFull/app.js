@@ -224,7 +224,8 @@ const getItem = (id, hash, response) => {
         element: instances.damageType,
         perks: [],
         stats: [],
-        bucket: itemDef.inventory.bucketTypeHash
+        bucket: itemDef.inventory.bucketTypeHash,
+        ammo: equippingBlock.ammoType
     }
 
     // Stats
