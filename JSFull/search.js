@@ -32,16 +32,16 @@ const unknownEval = (item, query) => { return true; }
 
 // Search by name
 const nameEval = (item, query) => {
-    return item.name.toLowercase().indexOf(query) != -1;
+    return item.name.toLowerCase().indexOf(query) != -1;
 }
 
 // Search by type
 const typeEval = (item, query) => { // MAP COMMON SHORTENINGS LATER i.e. SMG -> submachine gun
     let armor = item.type[1] != 1; // If the item is an armor piece
     if (armor) {
-        return manifests[4][item.type[0]].shortTitle.toLowercase().indexOf(query) != -1;
+        return manifests[4][item.type[0]].shortTitle.toLowerCase().indexOf(query) != -1;
     } else {
-        return manifests[4][item.type[2]].shortTitle.toLowercase().indexOf(query) != -1;
+        return manifests[4][item.type[2]].shortTitle.toLowerCase().indexOf(query) != -1;
     }
 }
 
