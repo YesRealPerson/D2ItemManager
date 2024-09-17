@@ -123,7 +123,7 @@ const showItemInfo = async (item) => {
     document.getElementById("panelName").innerHTML = name;
     // Champion types
     if (item.breakerType != 0) {
-        document.getElementById("panelName").innerHTML += "<br>" + breakerNames[item.breakerType] + "  <img style=\"width:15px; height: 15px; top:2px; position:relative;\" src = \"" + breakers[item.breakerType] + "\">";
+        document.getElementById("panelName").innerHTML += "<br>" + breakerNames[item.breakerType] + "  <img style=\"width:12px; height: 12px; top:2px; position:relative;\" src = \"" + breakers[item.breakerType] + "\">";
     }
     document.getElementById("flavor").innerText = style;
     // if(item.tags != undefined && item.tags.length != 0){
@@ -183,12 +183,12 @@ const showItemInfo = async (item) => {
     statsElement.innerText = "";
     if (damageTypes[item.element]) {
         statsElement.innerHTML += "Element:<br>";
-        valueElement.innerHTML += damageTypes[item.element] + " <img src=\"" + damageImages[item.element] + "\" style=\"width: 15px; height: 15px; vertical-align: middle;\"> " + "<br>";
+        valueElement.innerHTML += damageTypes[item.element] + " <img src=\"" + damageImages[item.element] + "\" style=\"width: 12px; height: 12px; vertical-align: middle;\"> " + "<br>";
         down++;
     }
     if (item.light != "") {
         statsElement.innerHTML += "Light Level:<br>";
-        valueElement.innerHTML += item.light + "<img src=\"/IMG/light.png\" style=\"width: 15px; height: 15px; vertical-align: middle;  transform: scaleX(-1);\">" + "<br>";
+        valueElement.innerHTML += item.light + "<img src=\"/IMG/light.png\" style=\"width: 12px; height: 12px; vertical-align: middle;  transform: scaleX(-1);\">" + "<br>";
         down++;
     }
 

@@ -183,6 +183,7 @@ const refreshAccess = async () => {
             response = await response.json();
             access = response.access_token;
             refresh = response.refresh_token;
+            globalReq.headers.Authorization = "Bearer " + access;
             localStorage.setItem("access", access);
             localStorage.setItem("refresh", refresh);
             res(200);
@@ -244,6 +245,7 @@ const getItem = (id, hash, response) => {
     newItem.stats.sort((a, b) => ("" + a.name).localeCompare(("" + b.name)))
 
     let dupes = {}
+    let armor = newItem.type[1] != 1;
     // Perks
     if (perks != undefined) {
         perks = perks.sockets;
@@ -258,7 +260,9 @@ const getItem = (id, hash, response) => {
                     description: data.displayProperties.description,
                     enhanced: enhanced
                 }])
-                dupes[perk.plugHash] = 1;
+                if(!armor){
+                    dupes[perk.plugHash] = 1;
+                }
             }
         }
     }
@@ -419,7 +423,7 @@ const itemCompare = (a, b) => {
     // If the items are armor or not
     let armor = a.type[1] != 1 && b.type[1] != 1;
     // 21, 22, 23
-    if (armor) {
+    if (armor && b.type[0] != a.type[0]) {
         return b.type[0] - a.type[0];
     }
     let lightDiff = b.light - a.light;

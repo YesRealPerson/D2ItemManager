@@ -26,3 +26,70 @@ Item schema
     bucket: itemDef.inventory.bucketTypeHash
     }
 */
+
+// User called a bad function
+const unknownEval = (item, query) => {return true;}
+
+// Search by name
+const nameEval = (item, query) => {
+    return item.name.indexOf(query) != -1;
+}
+
+// Search by type
+const typeEval = (item, query) => {
+
+}
+
+// Search by ammo type
+const ammoEval = (item, query) => {
+    
+}
+
+// Search by damage type
+const damageTypeEval = (item, query) => {
+    
+}
+
+// Search by light level
+const lightEval = (item, query) => {
+    
+}
+
+// Search by rarity
+const rarityEval = (item, query) => {
+    
+}
+
+// Search by item family
+const familyEval = (item, query) => {
+    
+}
+
+// Search by breaker type
+const breakerEval = (item, query) => {
+    
+}
+
+
+
+const nameToFunc = (expr) => {
+    if(expr == "name"){
+        return nameEval;
+    }else{
+        return unknownEval;
+    }
+}
+
+const search = (query) => {
+    query = query.split(",");
+    for(let i = 0; i < query.length; i++){
+        query[i] = query[i].trim().toLowercase();
+    }
+    let matches = db.iterableList;
+    query.array.forEach(expr => {
+        let func = nameToFunc(expr.split(":")[0]);
+        matches.forEach(item => {
+
+        })
+    });
+}
