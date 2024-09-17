@@ -124,6 +124,8 @@ const search = (query) => {
         query = query.split(",");
         // Trim and put each query into lowercase for comparison
         for (let i = 0; i < query.length; i++) {
+            console.log(typeof  query[i])
+            console.log(query[i])
             query[i] = query[i].trim().toLowercase();
         }
         // Loop through each query
