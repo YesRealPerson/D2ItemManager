@@ -119,12 +119,15 @@ const nameToFunc = (expr) => {
 const search = (query) => {
     // Make deep copy of full item list
     let matches = JSON.parse(JSON.stringify(db.iterableList));
+    matches.forEach(item => {
+        document.getElementById(item.id).setAttribute("style", "")
+    })
     try {
         // Split full search into individual queries
         query = query.split(",");
         // Trim and put each query into lowercase for comparison
         for (let i = 0; i < query.length; i++) {
-            console.log(typeof  query[i])
+            console.log(typeof query[i])
             console.log(query[i])
             query[i] = query[i].trim().toLowerCase();
         }
@@ -152,7 +155,7 @@ const search = (query) => {
         })
     }
     // In case the user passes an invalid search that causes an error
-    catch (err){
+    catch (err) {
         console.log(err);
         matches.forEach(item => {
             document.getElementById(item.id).setAttribute("style", "")
