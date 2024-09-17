@@ -142,9 +142,13 @@ const search = (query) => {
 
         // Loop through all remaining elements and grey them out
         matches.forEach(item => {
-            document.getElementById(item.itemInstanceId).setAttribute("style", "--opacity: 0.5")
+            try {
+                document.getElementById(item.itemInstanceId).setAttribute("style", "--opacity: 0.5")
+            } catch {
+                console.log(item)
+            }
         })
-    } 
+    }
     // In case the user passes an invalid search that causes an error
     catch {
         matches.forEach(item => {
