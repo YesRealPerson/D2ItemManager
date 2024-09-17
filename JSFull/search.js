@@ -131,19 +131,26 @@ const search = (query) => {
             console.log(query[i])
             query[i] = query[i].trim().toLowerCase();
         }
-        // Loop through each query
-        query.forEach(expr => {
-            // Get a function for the query type
-            let func = nameToFunc(expr.split(":")[0]);
-            // Evaluate every item for that search
-            for (let i = matches.length - 1; i >= 0; i--) {
-                // If the item matches the query (it returned true)
-                if (func(matches[i], expr.split(":")[1])) {
-                    // Cut element from array
-                    matches = matches.slice(0, i).concat(matches.slice(i + 1))
+
+        // Loop through each item
+        for(let i = matches.length -1; i >= 0; i--){
+            let valid = true;
+            // Loop through each query
+            for(let j = 0; j < query.length; j++) {
+                let expr = query[j];
+                // Get a function for the query type
+                let func = nameToFunc(expr.split(":")[0]);
+                // If func evaluates to false then item is not valid
+                if (!func(matches[i], expr.split(":")[1])) {
+                    valid = false;
+                    break;
                 }
             }
-        });
+            // Remove valid items from matches
+            if(valid){
+                matches = matches.slice(0, i).concat(matches.slice(i + 1))
+            }
+        }
 
         // Loop through all remaining elements and grey them out
         matches.forEach(item => {
