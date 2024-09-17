@@ -225,7 +225,7 @@ const getItem = (id, hash, response) => {
         perks: [],
         stats: [],
         bucket: itemDef.inventory.bucketTypeHash,
-        ammo: equippingBlock.ammoType
+        ammo: itemDef.equippingBlock.ammoType
     }
 
     // Stats
