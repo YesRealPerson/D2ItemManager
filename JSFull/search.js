@@ -126,7 +126,7 @@ const search = (query) => {
         for (let i = 0; i < query.length; i++) {
             console.log(typeof  query[i])
             console.log(query[i])
-            query[i] = query[i].trim().toLowercase();
+            query[i] = query[i].trim().toLowerCase();
         }
         // Loop through each query
         query.forEach(expr => {
