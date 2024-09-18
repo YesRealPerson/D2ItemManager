@@ -108,13 +108,17 @@ const breakerEval = (item, query) => {
 // Search by perks
 const perkEval = (item, query) => {
     let perks = item.perks;
-    perks.forEach(column => {
-        column.forEach(perk => {
+    for(let i = 0; i < perks.length; i++){
+        let column = perks[i]
+        for(let j = 0; j < column.length; j++){
+            let perk = column[j];
+            console.log(perk.name)
+            console.log(query)
             if(perk.name.toLowerCase().indexOf(query) != -1){
                 return true;
             }
-        });
-    });
+        }
+    }
     return false;
 }
 
@@ -138,7 +142,8 @@ const statEval = (item, query) => {
 
 // Helper function to compare stat value
 const statSearch = (stats, name, value, comp) => {
-    stats.forEach(stat => {
+    for(let i = 0; i < stats.length; i++) {
+        let stat = stats[i];
         if(stat.name.toLowerCase() == name){
             switch(comp){
                 case 0:
@@ -151,7 +156,7 @@ const statSearch = (stats, name, value, comp) => {
                     return false;
             }
         }
-    })
+    }
     return false;
     
 }
@@ -173,6 +178,10 @@ const nameToFunc = (expr) => {
             return rarityEval;
         case "champion":
             return breakerEval;
+        case "perk":
+            return perkEval;
+        case "stat":
+            return statEval;
         default:
             return unknownEval;
     }
