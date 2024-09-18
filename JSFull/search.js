@@ -53,8 +53,14 @@ const ammoEval = (item, query) => {
 
 // Search by damage type
 const damageTypeEval = (item, query) => {
-    let damageTypes = { 1: "kinetic", 2: "arc", 3: "solar", 4: "void", 5: "", 6: "stasis", 7: "strand" };
-    return damageTypes[item.element].indexOf(query) != -1;
+    try {
+        let damageTypes = { 1: "kinetic", 2: "arc", 3: "solar", 4: "void", 5: "", 6: "stasis", 7: "strand" };
+        return damageTypes[item.element].indexOf(query) != -1;
+    } catch {
+        print(item.element)
+        print(query)
+        return false;
+    }
 }
 
 // Search by light level
@@ -78,13 +84,19 @@ const lightEval = (item, query) => {
 
 // Search by rarity
 const rarityEval = (item, query) => {
-    let tierTypes = {
-        3: "common",
-        4: "rare",
-        5: "legendary",
-        6: "exotic"
-    };
-    return tierTypes[item.rarity].indexOf(query != -1);
+    try {
+        let tierTypes = {
+            3: "common",
+            4: "rare",
+            5: "legendary",
+            6: "exotic"
+        };
+        return tierTypes[item.rarity].indexOf(query != -1);
+    } catch {
+        print(item.rarity)
+        print(query)
+        return false;
+    }
 }
 
 // Search by breaker type
@@ -133,10 +145,10 @@ const search = (query) => {
         }
 
         // Loop through each item
-        for(let i = matches.length -1; i >= 0; i--){
+        for (let i = matches.length - 1; i >= 0; i--) {
             let valid = true;
             // Loop through each query
-            for(let j = 0; j < query.length; j++) {
+            for (let j = 0; j < query.length; j++) {
                 let expr = query[j];
                 // Get a function for the query type
                 let func = nameToFunc(expr.split(":")[0]);
@@ -147,7 +159,7 @@ const search = (query) => {
                 }
             }
             // Remove valid items from matches
-            if(valid){
+            if (valid) {
                 matches = matches.slice(0, i).concat(matches.slice(i + 1))
             }
         }

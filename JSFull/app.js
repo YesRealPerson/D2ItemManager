@@ -638,6 +638,7 @@ const sortVault = () => {
             }
         }
     }
+    search(document.getElementById("searchBox").value)
 }
 
 // Updates db variable
