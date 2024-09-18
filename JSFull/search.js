@@ -57,8 +57,8 @@ const damageTypeEval = (item, query) => {
         let damageTypes = { 1: "kinetic", 2: "arc", 3: "solar", 4: "void", 5: "", 6: "stasis", 7: "strand" };
         return damageTypes[item.element].indexOf(query) != -1;
     } catch {
-        print(item.element)
-        print(query)
+        console.log(item.element)
+        console.log(query)
         return false;
     }
 }
@@ -93,8 +93,8 @@ const rarityEval = (item, query) => {
         };
         return tierTypes[item.rarity].indexOf(query != -1);
     } catch {
-        print(item.rarity)
-        print(query)
+        console.log(item.rarity)
+        console.log(query)
         return false;
     }
 }
