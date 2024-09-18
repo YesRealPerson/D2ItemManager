@@ -57,8 +57,8 @@ const damageTypeEval = (item, query) => {
         let damageTypes = { 1: "kinetic", 2: "arc", 3: "solar", 4: "void", 5: "", 6: "stasis", 7: "strand" };
         return damageTypes[item.element].indexOf(query) != -1;
     } catch {
-        console.log(item.element)
-        console.log(query)
+        // console.log(item.element)
+        // console.log(query)
         return false;
     }
 }
@@ -91,10 +91,10 @@ const rarityEval = (item, query) => {
             5: "legendary",
             6: "exotic"
         };
-        return tierTypes[item.rarity].indexOf(query != -1);
+        return tierTypes[item.rarity].indexOf(query) != -1;
     } catch {
-        console.log(item.rarity)
-        console.log(query)
+        // console.log(item.rarity)
+        // console.log(query)
         return false;
     }
 }
@@ -139,8 +139,6 @@ const search = (query) => {
         query = query.split(",");
         // Trim and put each query into lowercase for comparison
         for (let i = 0; i < query.length; i++) {
-            console.log(typeof query[i])
-            console.log(query[i])
             query[i] = query[i].trim().toLowerCase();
         }
 
@@ -153,7 +151,7 @@ const search = (query) => {
                 // Get a function for the query type
                 let func = nameToFunc(expr.split(":")[0]);
                 // If func evaluates to false then item is not valid
-                if (!func(matches[i], expr.split(":")[1])) {
+                if (!func(matches[i], expr.split(":")[1].trim())) {
                     valid = false;
                     break;
                 }
@@ -168,8 +166,9 @@ const search = (query) => {
         matches.forEach(item => {
             try {
                 document.getElementById(item.id).setAttribute("style", "--opacity: 0.5")
-            } catch {
-                console.log(item)
+            } catch (err){
+                console.log(err);
+                // console.log(item)
             }
         })
     }
