@@ -105,8 +105,58 @@ const breakerEval = (item, query) => {
     return breakerNames[item.breakerType].indexOf(query) != -1;
 }
 
+// Search by perks
+const perkEval = (item, query) => {
+    let perks = item.perks;
+    perks.forEach(column => {
+        column.forEach(perk => {
+            if(perk.name.toLowerCase().indexOf(query) != -1){
+                return true;
+            }
+        });
+    });
+    return false;
+}
 
+// Search by stat values
+const statEval = (item, query) => {
+    let stats = item.stats;
+    try {
+        if(query.split(">").length > 1){
+            return statSearch(stats, query.split(">")[0], query.split(">")[1], 0);
+        }else if(query.split("<").length > 1){
+            return statSearch(stats, query.split("<")[0], query.split("<")[1], 1);
+        }else if(query.split("=").length > 1){
+            return statSearch(stats, query.split("=")[0], query.split("=")[1], 2);
+        }else{
+            return false;
+        }
+    } catch {
+        return false;
+    }
+}
 
+// Helper function to compare stat value
+const statSearch = (stats, name, value, comp) => {
+    stats.forEach(stat => {
+        if(stat.name.toLowerCase() == name){
+            switch(comp){
+                case 0:
+                    return stat.value > value
+                case 1:
+                    return stat.value < value
+                case 2:
+                    return stat.value == value
+                default:
+                    return false;
+            }
+        }
+    })
+    return false;
+    
+}
+
+// Convert an expression name to a function
 const nameToFunc = (expr) => {
     switch (expr) {
         case "name":
