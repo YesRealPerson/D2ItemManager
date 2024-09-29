@@ -639,6 +639,10 @@ const sortVault = () => {
         }
     }
     search(document.getElementById("searchBox").value)
+    let funny = document.getElementsByClassName("ui-tooltip");
+        for (let i = 0; i < funny.length; i++) {
+            funny[i].remove();
+        }
 }
 
 // Updates db variable

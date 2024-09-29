@@ -112,8 +112,6 @@ const perkEval = (item, query) => {
         let column = perks[i]
         for(let j = 0; j < column.length; j++){
             let perk = column[j];
-            console.log(perk.name)
-            console.log(query)
             if(perk.name.toLowerCase().indexOf(query) != -1){
                 return true;
             }
@@ -140,8 +138,23 @@ const statEval = (item, query) => {
     }
 }
 
+// Map common names to actual names
+const statNameMap = {
+    "rpm": "rounds per minute",
+    "ae": "airborne effectiveness",
+    "aim": "aim assistance",
+    "aa": "aim assistance",
+    "recoil": "recoil direction",
+    "reload": "reload speed",
+    "charge": "charge time",
+    "blast": "blast radius",
+}
+
 // Helper function to compare stat value
 const statSearch = (stats, name, value, comp) => {
+    if(statNameMap[name]){
+        name = statNameMap[name];
+    }
     for(let i = 0; i < stats.length; i++) {
         let stat = stats[i];
         if(stat.name.toLowerCase() == name){
