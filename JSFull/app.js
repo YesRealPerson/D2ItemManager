@@ -194,7 +194,7 @@ const refreshAccess = async () => {
 }
 
 // Get item information by instance id
-const getItem = (id, hash, response) => {
+const getItem = (id, hash, response, styleHash) => {
     // console.log(hash, " ", id);
     let data = response.Response.itemComponents;
     let instances = data.instances.data[id];
@@ -226,6 +226,13 @@ const getItem = (id, hash, response) => {
         stats: [],
         bucket: itemDef.inventory.bucketTypeHash,
         ammo: itemDef.equippingBlock.ammoType
+    }
+
+    if(styleHash){
+        let displayProperties = manifests[0][styleHash].displayProperties;
+        newItem.icon = displayProperties.icon;
+        newItem.watermark = displayProperties.watermark;
+        newItem.background = displayProperties.screenshot;
     }
 
     // Stats
@@ -752,7 +759,7 @@ const getVault = async () => {
     for (let i = 0; i < vault.length; i++) {
         if (vault[i].itemInstanceId != undefined) {
             try {
-                let item = getItem(vault[i].itemInstanceId, vault[i].itemHash, response);
+                let item = getItem(vault[i].itemInstanceId, vault[i].itemHash, response, vault[i].overrideStyleItemHash);
                 item.bucket = buckets[item.bucket];
                 db.iterableList.push(item);
                 try {
@@ -854,8 +861,8 @@ const equipItem = async (instance, character) => {
 
 // Loop refresh vault
 const refreshTimer = async () => {
-    await new Promise(r => setTimeout(r, 45000));
     getVault();
+    await new Promise(r => setTimeout(r, 45000));
     refreshTimer();
 }
 
@@ -895,5 +902,5 @@ const refreshTimer = async () => {
     }
 
     // Fill vault and character information
-    await getVault();
+    refreshTimer();
 })();

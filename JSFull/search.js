@@ -237,7 +237,7 @@ const search = (query) => {
         // Loop through all remaining elements and grey them out
         matches.forEach(item => {
             try {
-                document.getElementById(item.id).setAttribute("style", "--opacity: 0.5")
+                document.getElementById(item.id).setAttribute("style", "--opacity: 0.25")
             } catch (err){
                 console.log(err);
                 // console.log(item)
