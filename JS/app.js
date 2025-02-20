@@ -649,7 +649,6 @@ const sortVault = () => {
             }
 
             if (i == times.length - 1) {
-                console.log("vault!!!!")
                 let vaultElement = document.createElement("div");
                 vaultElement.className = "vault"
                 vaultElement.id = `vault.${bucketName}`
@@ -783,7 +782,7 @@ const getVault = async () => {
         if (vault[i].itemInstanceId != undefined) {
             try {
                 let item = getItem(vault[i].itemInstanceId, vault[i].itemHash, response, vault[i].overrideStyleItemHash);
-                item.bucket = buckets[item.bucket];
+                item.bucket = buckets[item.baseBucket];
                 db.iterableList.push(item);
                 try {
                     db.vault[item.bucket].push(item);
