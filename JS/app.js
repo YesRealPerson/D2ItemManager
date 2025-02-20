@@ -598,9 +598,6 @@ const sortVault = () => {
             } catch (err) {
                 console.log(`bucket id ${bucketName} does not exist in character ${id} equipped!\nError: ${err}`)
             }
-            if (bucketName == "postmaster") {
-                bucketElements[j].appendChild(equippedElement)
-            }
 
             // Sort character inventory bucket
             character.inventory[bucketName].sort(itemCompare);
@@ -626,6 +623,7 @@ const sortVault = () => {
                             clearToolTips();
                         });
                     } else {
+                        bucketElements[j].parentElement.style.gridTemplateColumns = "235px 235px 235px auto"
                         itemElement.addEventListener("dblclick", async () => {
                             createNotification("Pulling: " + character.inventory[bucketName][k].name, 1500);
                             let item = character.inventory[bucketName][k]
