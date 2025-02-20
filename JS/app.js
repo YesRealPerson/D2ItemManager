@@ -104,6 +104,14 @@ const indb = (dbName, version) => {
     })
 }
 
+// Deletes all tooltips
+const clearToolTips = () => {
+    let funny = document.getElementsByClassName("ui-tooltip");
+    for (let i = 0; i < funny.length; i++) {
+        funny[i].remove();
+    }
+}
+
 // Fetches all manifests from Bungie.net
 const refreshManifests = async () => {
     return new Promise(async (res, rej) => {
@@ -228,7 +236,7 @@ const getItem = (id, hash, response, styleHash) => {
         ammo: itemDef.equippingBlock.ammoType
     }
 
-    if(styleHash){
+    if (styleHash) {
         let displayProperties = manifests[0][styleHash].displayProperties;
         newItem.icon = displayProperties.icon;
         newItem.watermark = displayProperties.watermark;
@@ -268,7 +276,7 @@ const getItem = (id, hash, response, styleHash) => {
                     description: data.displayProperties.description,
                     enhanced: enhanced
                 }])
-                if(!armor){
+                if (!armor) {
                     dupes[perk.plugHash] = 1;
                 }
             }
@@ -515,10 +523,7 @@ const onDrop = async (id) => {
             }
         }
 
-        let funny = document.getElementsByClassName("ui-tooltip");
-        for (let i = 0; i < funny.length; i++) {
-            funny[i].remove();
-        }
+        clearToolTips();
     }
 }
 
@@ -610,10 +615,7 @@ const sortVault = () => {
                         } else {
                             createNotification("Failed to equip: " + character.inventory[bucketName][k].name + "\n" + request.Message, 1500);
                         }
-                        let funny = document.getElementsByClassName("ui-tooltip");
-                        for (let i = 0; i < funny.length; i++) {
-                            funny[i].remove();
-                        }
+                        clearToolTips();
                     });
                     characterElement.appendChild(itemElement);
                 }
@@ -645,11 +647,7 @@ const sortVault = () => {
             }
         }
     }
-    search(document.getElementById("searchBox").value)
-    let funny = document.getElementsByClassName("ui-tooltip");
-        for (let i = 0; i < funny.length; i++) {
-            funny[i].remove();
-        }
+    clearToolTips();
 }
 
 // Updates db variable
