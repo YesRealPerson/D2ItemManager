@@ -238,12 +238,12 @@ const getItem = (id, hash, response, styleHash) => {
     }
 
     if (styleHash) {
-        try{
+        try {
             let itemDef = manifests[0][styleHash];
             newItem.icon = itemDef.displayProperties.icon;
             newItem.watermark = itemDef.displayProperties.watermark;
             newItem.background = itemDef.screenshot;
-        }catch{
+        } catch {
         }
     }
 
@@ -598,6 +598,9 @@ const sortVault = () => {
             } catch (err) {
                 console.log(`bucket id ${bucketName} does not exist in character ${id} equipped!\nError: ${err}`)
             }
+            if (bucketName == "postmaster") {
+                bucketElements[j].appendChild(equippedElement)
+            }
 
             // Sort character inventory bucket
             character.inventory[bucketName].sort(itemCompare);
@@ -606,21 +609,40 @@ const sortVault = () => {
             try {
                 for (let k = 0; k < character.inventory[bucketName].length; k++) {
                     let itemElement = itemToHTML(character.inventory[bucketName][k], k);
-                    itemElement.addEventListener("dblclick", async () => {
-                        createNotification("Equipping: " + character.inventory[bucketName][k].name, 1500);
-                        let request = await equipItem(character.inventory[bucketName][k].id, id);
-                        if (request == 200) {
-                            createNotification("Equipped: " + character.inventory[bucketName][k].name, 1500);
-                            // Swap equipped item with transfered item
-                            let item = db.characters[id].equipped[bucketName][0];
-                            db.characters[id].equipped[bucketName][0] = character.inventory[bucketName][k];
-                            character.inventory[bucketName][k] = item;
-                            sortVault();
-                        } else {
-                            createNotification("Failed to equip: " + character.inventory[bucketName][k].name + "\n" + request.Message, 1500);
-                        }
-                        clearToolTips();
-                    });
+                    if (bucketName != "postmaster") {
+                        itemElement.addEventListener("dblclick", async () => {
+                            createNotification("Equipping: " + character.inventory[bucketName][k].name, 1500);
+                            let request = await equipItem(character.inventory[bucketName][k].id, id);
+                            if (request == 200) {
+                                createNotification("Equipped: " + character.inventory[bucketName][k].name, 1500);
+                                // Swap equipped item with transfered item
+                                let item = db.characters[id].equipped[bucketName][0];
+                                db.characters[id].equipped[bucketName][0] = character.inventory[bucketName][k];
+                                character.inventory[bucketName][k] = item;
+                                sortVault();
+                            } else {
+                                createNotification("Failed to equip: " + character.inventory[bucketName][k].name + "\n" + request.Message, 1500);
+                            }
+                            clearToolTips();
+                        });
+                    } else {
+                        itemElement.addEventListener("dblclick", async () => {
+                            createNotification("Pulling: " + character.inventory[bucketName][k].name, 1500);
+                            let item = character.inventory[bucketName][k]
+                            let request = await pullFromPostmaster(item.hash, 1, item.id, id);
+                            if (request == 200) {
+                                createNotification("Pulled: " + character.inventory[bucketName][k].name, 1500);
+                                // Swap equipped item with transfered item
+                                let item = db.characters[id].equipped[bucketName][0];
+                                db.characters[id].equipped[bucketName][0] = character.inventory[bucketName][k];
+                                character.inventory[bucketName][k] = item;
+                                sortVault();
+                            } else {
+                                createNotification("Failed to pull: " + character.inventory[bucketName][k].name + "\n" + request.Message, 1500);
+                            }
+                            clearToolTips();
+                        });
+                    }
                     characterElement.appendChild(itemElement);
                 }
                 bucketElements[j].appendChild(characterElement)
@@ -859,6 +881,38 @@ const equipItem = async (instance, character) => {
             res(funny)
         }
     })
+}
+
+const pullFromPostmaster = async (itemHash, stackSize, instance, character) => {
+    return new Promise(async (res, rej) => {
+        let data = JSON.parse(JSON.stringify(globalReq)); // THIS IS TO DEEP CLONE THE OBJECT!
+        data.method = "POST";
+        data.body = JSON.stringify({
+            "itemReferenceHash": itemHash,
+            "stackSize": stackSize,
+            "itemId": instance,
+            "characterId": character,
+            "membershipType": membershipType
+        });
+
+        let response = await fetch(baseURL + "Actions/Items/PullFromPostmaster/", data)
+        if (response.status == 401) {
+            console.log("Transfer item failed!\nRefreshing token\nResponse for debug:" + await response.text());
+            if (await refreshAccess() == 200) {
+                pullFromPostmaster(itemHash, stackSize, instance, character);
+            } else {
+                createNotification("Access Token Expired! Please re-login.")
+            }
+        }
+        else if (response.status == 200) {
+            res(200)
+        } else {
+            console.error("Something funky happened! (transferItem)\n", JSON.stringify(response), response)
+            let funny = await response.json();
+            console.log(funny)
+            res(funny)
+        }
+    });
 }
 
 // Loop refresh vault
