@@ -623,7 +623,7 @@ const sortVault = () => {
                             clearToolTips();
                         });
                     } else {
-                        bucketElements[j].parentElement.style.gridTemplateColumns = "235px 235px 235px auto"
+                        bucketElements[j].style.gridTemplateColumns = "235px 235px 235px auto"
                         itemElement.addEventListener("dblclick", async () => {
                             createNotification("Pulling: " + character.inventory[bucketName][k].name, 1500);
                             let item = character.inventory[bucketName][k]
