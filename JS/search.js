@@ -48,7 +48,11 @@ const typeEval = (item, query) => { // MAP COMMON SHORTENINGS LATER i.e. SMG -> 
 // Search by ammo type
 const ammoEval = (item, query) => {
     let ammoTypes = ["none", "primary", "special", "heavy", "none"];
-    return ammoTypes[item.ammo].indexOf(query) != -1;
+    let funny = ammoTypes[item.ammo]?.indexOf(query) != -1;
+    if(funny){
+        return funny;
+    }
+    return false;
 }
 
 // Search by damage type
@@ -237,7 +241,7 @@ const search = (query) => {
         // Loop through all remaining elements and grey them out
         matches.forEach(item => {
             try {
-                document.getElementById(item.id).setAttribute("style", "--opacity: 0.25")
+                document.getElementById(item.id).setAttribute("style", "--opacity: 0.5")
             } catch (err){
                 console.log(err);
                 // console.log(item)

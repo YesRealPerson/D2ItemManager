@@ -101,7 +101,7 @@ const showItemInfo = async (item) => {
     }
     let screenshot = item.background;
     if (!screenshot) {
-        screenshot = "https://www.bungie.net/img/misc/missing_icon_d2.png";
+        screenshot = "/img/misc/missing_icon_d2.png";
     }
     let stats = item.stats;
     if (!stats) {
