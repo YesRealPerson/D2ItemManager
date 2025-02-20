@@ -237,10 +237,10 @@ const getItem = (id, hash, response, styleHash) => {
     }
 
     if (styleHash) {
-        let displayProperties = manifests[0][styleHash].displayProperties;
-        newItem.icon = displayProperties.icon;
-        newItem.watermark = displayProperties.watermark;
-        newItem.background = displayProperties.screenshot;
+        let itemDef = manifests[0][styleHash].displayProperties;
+        newItem.icon = itemDef.displayProperties.icon;
+        newItem.watermark = itemDef.displayProperties.watermark;
+        newItem.background = itemDef.screenshot;
     }
 
     // Stats
@@ -704,7 +704,7 @@ const getVault = async () => {
         for (let j = 0; j < equipped.length; j++) {
             if (equipped[j].itemInstanceId != undefined && buckets[equipped[j].bucketHash] != undefined) {
                 try {
-                    let item = getItem(equipped[j].itemInstanceId, equipped[j].itemHash, response);
+                    let item = getItem(equipped[j].itemInstanceId, equipped[j].itemHash, response, equipped[j].overrideStyleItemHash);
                     item.bucket = buckets[equipped[j].bucketHash];
                     db.iterableList.push(item);
                     try {
@@ -728,7 +728,7 @@ const getVault = async () => {
         for (let j = 0; j < inventory.length; j++) {
             if (inventory[j].itemInstanceId != undefined && buckets[inventory[j].bucketHash] != undefined) {
                 try {
-                    let item = getItem(inventory[j].itemInstanceId, inventory[j].itemHash, response);
+                    let item = getItem(inventory[j].itemInstanceId, inventory[j].itemHash, response, inventory[j].overrideStyleItemHash);
                     item.bucket = buckets[inventory[j].bucketHash];
                     db.iterableList.push(item);
                     try {
