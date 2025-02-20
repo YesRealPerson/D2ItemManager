@@ -233,7 +233,7 @@ const getItem = (id, hash, response, styleHash) => {
         element: instances.damageType,
         perks: [],
         stats: [],
-        bucket: itemDef.inventory.bucketTypeHash,
+        baseBucket: itemDef.inventory.bucketTypeHash,
         ammo: itemDef.equippingBlock.ammoType
     }
 
@@ -633,7 +633,7 @@ const sortVault = () => {
                             if (request == 200) {
                                 createNotification("Pulled: " + character.inventory[bucketName][k].name, 1500);
                                 character.inventory[bucketName].splice(k, 1)
-                                character.inventory[bucketElements[item.bucket]].push(item)
+                                character.inventory[bucketElements[item.baseBucket]].push(item)
                                 sortVault();
                             } else {
                                 createNotification("Failed to pull: " + character.inventory[bucketName][k].name + "\n" + request.Message, 1500);
