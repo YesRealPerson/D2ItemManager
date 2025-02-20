@@ -632,10 +632,8 @@ const sortVault = () => {
                             let request = await pullFromPostmaster(item.hash, 1, item.id, id);
                             if (request == 200) {
                                 createNotification("Pulled: " + character.inventory[bucketName][k].name, 1500);
-                                // Swap equipped item with transfered item
-                                let item = db.characters[id].equipped[bucketName][0];
-                                db.characters[id].equipped[bucketName][0] = character.inventory[bucketName][k];
-                                character.inventory[bucketName][k] = item;
+                                character.inventory[bucketName].splice(k, 1)
+                                character.inventory[bucketElements[item.bucket]].push(item)
                                 sortVault();
                             } else {
                                 createNotification("Failed to pull: " + character.inventory[bucketName][k].name + "\n" + request.Message, 1500);
