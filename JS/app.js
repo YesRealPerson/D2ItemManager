@@ -343,7 +343,7 @@ const itemToHTML = (item, index) => {
         2: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_092d066688b879c807c3b460afdd61e6.png",
         3: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_2a1773e10968f2d088b97c22b22bba9e.png",
         4: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_ceb2f6197dccf3958bb31cc783eb97a0.png",
-        5: "https://www.bungie.net/img/misc/missing_icon_d2.png",
+        5: "/img/misc/missing_icon_d2.png",
         6: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_530c4c3e7981dc2aefd24fd3293482bf.png",
         7: "https://www.bungie.net/common/destiny2_content/icons/DestinyDamageTypeDefinition_b2fe51a94f3533f97079dfa0d27a4096.png"
     };
@@ -649,6 +649,7 @@ const sortVault = () => {
             }
 
             if (i == times.length - 1) {
+                console.log("vault!!!!")
                 let vaultElement = document.createElement("div");
                 vaultElement.className = "vault"
                 vaultElement.id = `vault.${bucketName}`
@@ -905,7 +906,7 @@ const pullFromPostmaster = async (itemHash, stackSize, instance, character) => {
         else if (response.status == 200) {
             res(200)
         } else {
-            console.error("Something funky happened! (transferItem)\n", JSON.stringify(response), response)
+            console.error("Something funky happened! (pull from postmaster)\n", JSON.stringify(response), response)
             let funny = await response.json();
             console.log(funny)
             res(funny)
