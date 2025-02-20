@@ -237,10 +237,13 @@ const getItem = (id, hash, response, styleHash) => {
     }
 
     if (styleHash) {
-        let itemDef = manifests[0][styleHash].displayProperties;
-        newItem.icon = itemDef.displayProperties.icon;
-        newItem.watermark = itemDef.displayProperties.watermark;
-        newItem.background = itemDef.screenshot;
+        try{
+            let itemDef = manifests[0][styleHash];
+            newItem.icon = itemDef.displayProperties.icon;
+            newItem.watermark = itemDef.displayProperties.watermark;
+            newItem.background = itemDef.screenshot;
+        }catch{
+        }
     }
 
     // Stats
@@ -714,7 +717,7 @@ const getVault = async () => {
                         character.equipped[item.bucket].push(item);
                     }
                 } catch (err) {
-                    console.error(equipped[j].itemInstanceId, "  ", equipped[j].itemHash, "\n", err)
+                    console.error(equipped[j].itemInstanceId, "  ", equipped[j].itemHash, "  ", equipped[j].overrideStyleItemHash, "\n", err)
                 }
             }
         }
@@ -738,7 +741,7 @@ const getVault = async () => {
                         character.inventory[item.bucket].push(item);
                     }
                 } catch (err) {
-                    console.error(inventory[j].itemInstanceId, "  ", inventory[j].itemHash, "\n", err)
+                    console.error(inventory[j].itemInstanceId, "  ", inventory[j].itemHash, "  ", inventory[j].overrideStyleItemHash, "\n", err)
                 }
             }
         }
@@ -767,7 +770,7 @@ const getVault = async () => {
                     db.vault[item.bucket].push(item);
                 }
             } catch {
-                // console.log(vault[i].itemInstanceId, "  ", vault[i].itemHash)
+                console.error(vault[j].itemInstanceId, "  ", vault[j].itemHash, "  ", vault[j].overrideStyleItemHash, "\n", err)
             }
         }
     }
